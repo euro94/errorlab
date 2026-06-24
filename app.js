@@ -1,5 +1,6 @@
 /* ErrorLab — app.js: router, theme, boot */
 import { loadStore, getStore, setStore, persist } from './store.js';
+import { hasApiKey, setApiKey } from './openai.js';
 import { renderLog } from './views/log.js';
 import { renderErrors } from './views/errors.js';
 import { renderRetest } from './views/retest.js';
@@ -104,3 +105,27 @@ render();
 
 /* ---- Restore hash on load ---- */
 if (!location.hash) location.hash = '#/log';
+
+/* ---- Key indicator + settings ---- */
+function updateKeyIndicator() {
+  const dot = document.getElementById('keyIndicator');
+  if (dot) dot.style.display = hasApiKey() ? 'inline-block' : 'none';
+}
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  const hasKey = hasApiKey();
+  const msg = hasKey
+    ? 'OpenAI API key is saved in this browser.\n\nEnter a new key (or leave blank to keep current):'
+    : 'Enter your OpenAI API key (starts with sk-):';
+  const key = prompt(msg);
+  if (key === null) return; // cancelled
+  if (key === '' && hasKey) return; // kept current
+  if (key && key.startsWith('sk-')) {
+    setApiKey(key);
+    updateKeyIndicator();
+    window.__errorlabToast('API key saved');
+    render();
+  } else if (key) {
+    alert('Enter a valid OpenAI API key (starts with sk-)');
+  }
+});
+updateKeyIndicator();
