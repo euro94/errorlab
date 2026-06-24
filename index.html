@@ -59,6 +59,10 @@
     document.getElementById("themeBtn").addEventListener("click", () => {
       if (window.__errorlabToggleTheme) window.__errorlabToggleTheme();
     });
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+      if (window.__errorlabOpenSettings) window.__errorlabOpenSettings();
+      else alert('Loading... try again in a moment');
+    });
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch((e) => console.warn("SW failed", e)));
     }

@@ -111,14 +111,14 @@ function updateKeyIndicator() {
   const dot = document.getElementById('keyIndicator');
   if (dot) dot.style.display = hasApiKey() ? 'inline-block' : 'none';
 }
-document.getElementById('settingsBtn').addEventListener('click', () => {
+window.__errorlabOpenSettings = () => {
   const hasKey = hasApiKey();
   const msg = hasKey
     ? 'OpenAI API key is saved in this browser.\n\nEnter a new key (or leave blank to keep current):'
     : 'Enter your OpenAI API key (starts with sk-):';
   const key = prompt(msg);
-  if (key === null) return; // cancelled
-  if (key === '' && hasKey) return; // kept current
+  if (key === null) return;
+  if (key === '' && hasKey) return;
   if (key && key.startsWith('sk-')) {
     setApiKey(key);
     updateKeyIndicator();
@@ -127,5 +127,5 @@ document.getElementById('settingsBtn').addEventListener('click', () => {
   } else if (key) {
     alert('Enter a valid OpenAI API key (starts with sk-)');
   }
-});
+};
 updateKeyIndicator();
