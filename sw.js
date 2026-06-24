@@ -1,7 +1,7 @@
 /* ErrorLab service worker — cache-first offline shell */
-const CACHE = "errorlab-v1";
+const CACHE = "errorlab-v2";
 const ASSETS = [
-  "./", "./index.html", "./styles.css", "./app.js", "./store.js", "./fsrs.js",
+  "./", "./index.html", "./styles.css", "./app.js", "./store.js", "./fsrs.js", "./openai.js",
   "./views/log.js", "./views/errors.js", "./views/retest.js", "./views/mini.js", "./views/dashboard.js",
   "./manifest.webmanifest", "./icon.svg",
 ];

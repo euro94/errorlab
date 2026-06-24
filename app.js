@@ -34,7 +34,7 @@ function render() {
   let view;
   switch (route) {
     case 'log':
-      view = renderLog(() => render());
+      view = renderLog();
       break;
     case 'errors':
       view = renderErrors();

@@ -724,3 +724,45 @@ textarea.input {
   border-radius: var(--r-full);
   transition: width 400ms var(--ease);
 }
+
+/* ============================================================
+   CAMERA CAPTURE
+   ============================================================ */
+.capture-zone {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: var(--s7) var(--s4);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  background: var(--surface);
+}
+.capture-zone:hover { border-color: var(--primary); background: var(--primary-soft); }
+.capture-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  pointer-events: none;
+}
+.photo-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   SPINNER (processing indicator)
+   ============================================================ */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto var(--s2);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
