@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="g" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c77d20"/>
+      <stop offset="100%" stop-color="#e8983e"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded square background -->
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="#131619"/>
+  <!-- stylized lab flask: triangular body + narrow neck -->
+  <path d="M256 112 L256 240 M200 240 L312 240 L352 400 Q352 432 256 432 Q160 432 160 400 L200 240" stroke="url(#g)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- liquid level inside flask -->
+  <path d="M196 340 Q196 400 256 400 Q316 400 316 340" stroke="url(#g)" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.4"/>
+  <!-- error cross (X) in center -->
+  <g transform="translate(256,288)">
+    <line x1="-40" y1="-40" x2="40" y2="40" stroke="url(#g)" stroke-width="24" stroke-linecap="round"/>
+    <line x1="40" y1="-40" x2="-40" y2="40" stroke="url(#g)" stroke-width="24" stroke-linecap="round"/>
+  </g>
+</svg>

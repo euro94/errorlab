@@ -1,0 +1,5 @@
+node_modules/
+.builder_env
+*.pyc
+__pycache__/
+.tools/secret.env
