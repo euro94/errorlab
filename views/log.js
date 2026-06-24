@@ -7,7 +7,7 @@ function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
 
 // Current capture session state
 let capturedPhoto = null;       // base64 data URL
-let extractedData = null;       // { question, correctAnswer, yourAnswer, topic }
+let extractedData = null;       // { question, correctAnswer, yourAnswer, topic, errorCategory, errorNote }
 let processing = false;
 let errorMsg = null;
 
@@ -134,12 +134,12 @@ export function renderLog() {
               <div class="field">
                 <label>Why you missed it</label>
                 <select class="input" id="editCat">
-                  ${Object.entries(CATEGORIES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}
+                  ${Object.entries(CATEGORIES).map(([k, v]) => `<option value="${k}" ${extractedData.errorCategory === k ? 'selected' : ''}>${v.label}</option>`).join('')}
                 </select>
               </div>
               <div class="field">
                 <label>Quick note</label>
-                <input class="input" id="editWhy" placeholder="e.g. forgot the formula" />
+                <input class="input" id="editWhy" placeholder="e.g. forgot the formula" value="${escapeAttr(extractedData.errorNote || '')}" />
               </div>
             </div>
             <button class="btn primary" style="width:100%;margin-top:var(--s3)" id="saveEntryBtn">

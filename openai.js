@@ -28,18 +28,21 @@ export function setApiKey(key) {
   }
 }
 
-const SYSTEM_PROMPT = `You are an OCR and accounting question extractor. You receive a photo of a Becker CPA review question (FAR section). Extract the following and return ONLY valid JSON with these exact keys:
+const SYSTEM_PROMPT = `You are an OCR and accounting question extractor. You receive a photo of a Becker CPA review question (FAR section) where the student got it wrong. Extract the following and return ONLY valid JSON with these exact keys:
 
 {
   "question": "The full question stem exactly as shown",
   "correctAnswer": "The correct answer choice (letter + text)",
   "yourAnswer": "The answer the student selected / is marked (the wrong one)",
-  "topic": "The accounting topic (e.g. Bonds, Leases, Consolidation, NFP, Revenue Recognition, etc.)"
+  "topic": "The accounting topic (e.g. Bonds, Leases, Consolidation, NFP, Revenue Recognition, etc.)",
+  "errorCategory": "Why the student likely got it wrong. Pick ONE: 'reading' (misread the stem), 'misinterpret' (wrong concept applied), 'calc' (math slip), or 'understanding' (genuine knowledge gap). Compare the student's wrong answer to the correct answer to determine the most likely error type.",
+  "errorNote": "Brief one-sentence diagnosis of what went wrong (e.g. 'used stated rate instead of effective rate', 'forgot to include initial direct costs', 'applied wrong ownership percentage')"
 }
 
 Rules:
 - If you can't read something clearly, use "[unreadable]"
-- If there's no clearly marked wrong answer, set yourAnswer to "[not visible]"
+- If there's no clearly marked wrong answer, set yourAnswer to "[not visible]" and errorCategory to "understanding"
+- errorCategory MUST be one of: reading, misinterpret, calc, understanding
 - Return ONLY the JSON object, no markdown, no explanation`;
 
 export async function extractFromPhoto(base64Image) {
@@ -104,7 +107,9 @@ export async function extractFromPhoto(base64Image) {
       question: parsed.question || '',
       correctAnswer: parsed.correctAnswer || '',
       yourAnswer: parsed.yourAnswer || '',
-      topic: parsed.topic || ''
+      topic: parsed.topic || '',
+      errorCategory: parsed.errorCategory || 'understanding',
+      errorNote: parsed.errorNote || ''
     };
   } catch (e) {
     // Try to extract JSON from markdown code blocks
@@ -115,7 +120,9 @@ export async function extractFromPhoto(base64Image) {
         question: parsed.question || '',
         correctAnswer: parsed.correctAnswer || '',
         yourAnswer: parsed.yourAnswer || '',
-        topic: parsed.topic || ''
+        topic: parsed.topic || '',
+        errorCategory: parsed.errorCategory || 'understanding',
+        errorNote: parsed.errorNote || ''
       };
     }
     throw new Error('Could not parse AI response. Try again with a clearer photo.');
