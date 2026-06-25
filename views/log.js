@@ -1,108 +1,63 @@
-/* ErrorLab — views/log.js: camera + AI + sequential popup matrix */
-import { addEntry, OUTCOMES, FAILURE_REASONS, SKILL_LEVELS, FAR_NODES_FLAT } from '../store.js';
-import { extractFromPhoto, hasApiKey, setApiKey } from '../openai.js';
+/* ErrorLab — views/log.js: simple working baseline */
+import { addEntry } from '../store.js';
 
-function esc(s) { try { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); } catch(e) { return String(s); } }
-function att(s) { return esc(s).replace(/"/g, '&quot;'); }
-
-let section = '', module = '';
-let photo = null, data = null, busy = false, err = null, saved = null;
-let picks = { outcome:'honest_gap', failure:'conceptual', skill:'application', farNode:'', farSub:'', confidence:3 };
-let popup = 0;
+let section = '', mod = '';
 
 export function renderLog() {
-  const w = document.createElement('div'); w.className = 'fade-in';
+  const w = document.createElement('div');
+  w.className = 'fade-in';
+  w.innerHTML = `<div class="section-head">Fast Log</div>
+    <div class="card-sm" style="margin-bottom:var(--s3)"><div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)">
+      <input class="input input-sm" id="sec" placeholder="Section (FAR)" style="font-size:16px"/>
+      <input class="input input-sm" id="mod" placeholder="Module (F3: Bonds)" style="font-size:16px"/>
+    </div></div>
+    <div class="capture-zone" id="cz"><div class="capture-inner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span style="font-weight:700;color:var(--primary);margin-top:var(--s2)">Tap to capture</span>
+    </div><input type="file" accept="image/*" capture="environment" id="pi" hidden/></div>
+    <div id="result" style="margin-top:var(--s3)"></div>`;
 
-  function render() {
+  const cz = w.querySelector('#cz');
+  const pi = w.querySelector('#pi');
+  const result = w.querySelector('#result');
+  const secEl = w.querySelector('#sec');
+  const modEl = w.querySelector('#mod');
+
+  secEl.oninput = () => { section = secEl.value; };
+  modEl.oninput = () => { mod = modEl.value; };
+  cz.onclick = () => pi.click();
+
+  pi.onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    result.innerHTML = '<div class="card" style="text-align:center;padding:var(--s5)"><div class="spinner"></div><p>Reading...</p></div>';
     try {
-      if (!hasApiKey()) {
-        w.innerHTML = `<div class="section-head">Fast Log</div><div class="card state"><div class="big">🔑</div><h2>API Key</h2><p>Enter your OpenAI key (starts with sk-)</p><input class="input" id="ki" type="password" placeholder="sk-..." style="max-width:280px;display:block;margin:0 auto var(--s3)"/><button class="btn primary" id="ks">Save Key</button></div>`;
-        w.querySelector('#ks').onclick = () => { const v = w.querySelector('#ki').value.trim(); if (v && v.startsWith('sk-')) { setApiKey(v); render(); } else { alert('Key must start with sk-'); } };
-        return;
-      }
-      const store = window.__errorlabGetStore ? window.__errorlabGetStore() : { entries: [] };
-      const today = store.entries.filter(e => { try { return new Date(e.date).toDateString() === new Date().toDateString(); } catch(_) { return false; } }).length;
-      const due = store.entries.filter(e => { try { return e.fsrs && new Date(e.fsrs.due) <= new Date(); } catch(_) { return false; } }).length;
-
-      let h = `<div class="section-head">Fast Log</div>
-        <div class="card-sm" style="margin-bottom:var(--s3)"><div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)">
-          <input class="input input-sm" id="sec" placeholder="Section (FAR)" value="${att(section)}" style="font-size:16px"/>
-          <input class="input input-sm" id="mod" placeholder="Module (F3: Bonds)" value="${att(module)}" style="font-size:16px"/>
-        </div></div>`;
-
-      if (!photo) {
-        h += `<div class="capture-zone" id="cz"><div class="capture-inner"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg><span style="font-weight:700;color:var(--primary);margin-top:var(--s2)">Tap to capture</span></div><input type="file" accept="image/*" capture="environment" id="pi" hidden/></div>`;
-      }
-
-      if (busy) h += `<div class="card" style="margin-top:var(--s3);text-align:center;padding:var(--s5)"><div class="spinner"></div><p>AI reading your question...</p></div>`;
-      if (err) h += `<div class="card" style="margin-top:var(--s3);border-color:var(--danger)"><div style="display:flex;gap:var(--s2)"><span style="color:var(--danger);font-size:var(--t-xl)">⚠</span><div><strong style="color:var(--danger)">Failed</strong><p style="font-size:var(--t-sm);color:var(--muted);margin:var(--s1) 0">${esc(err)}</p><button class="btn small" id="rb">Retry</button></div></div></div>`;
-
-      if (photo && !busy) {
-        h += `<div class="card" style="margin-top:var(--s3)"><div style="display:flex;gap:var(--s3);margin-bottom:var(--s3)"><img src="${photo}" class="photo-thumb"/><div style="flex:1"><button class="btn small" id="rk">📷 Retake</button>${!data&&!err?`<button class="btn primary small" id="ex" style="margin-left:var(--s2)">🔍 Read</button>`:''}</div></div>`;
-        if (data) {
-          const farLbl = (() => { try { const n = FAR_NODES_FLAT.find(x=>x.key===picks.farNode); return n?n.label:'Select...'; } catch(_) { return 'Select...'; } })();
-          h += `<div style="border-top:1px solid var(--border);padding-top:var(--s3)">
-            <textarea class="input" id="eq" rows="2" style="font-size:16px">${esc(data.question)}</textarea>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-top:var(--s2)">
-              <input class="input input-sm" id="ey" value="${att(data.yourAnswer)}" placeholder="Your answer" style="font-size:16px"/>
-              <input class="input input-sm" id="ec" value="${att(data.correctAnswer)}" placeholder="Correct" style="font-size:16px"/>
-            </div>
-            <input class="input input-sm" id="et" style="margin-top:var(--s2);font-size:16px" value="${att((module?module+' — ':'')+(data.topic||''))}" placeholder="Topic"/>
-            <div style="margin-top:var(--s3);display:grid;gap:var(--s1)">
-              <button class="popup-trigger" data-axis="1"><span style="color:var(--faint)">Outcome</span><span style="font-weight:700;color:${picks.outcome==='misconception'?'#b71c1c':'var(--primary)'}">${OUTCOMES[picks.outcome]?.label||'?'}</span></button>
-              <button class="popup-trigger" data-axis="2"><span style="color:var(--faint)">Why missed</span><span style="font-weight:700;color:var(--muted)">${FAILURE_REASONS[picks.failure]?.label||'?'}</span></button>
-              <button class="popup-trigger" data-axis="3"><span style="color:var(--faint)">Skill</span><span style="font-weight:700;color:var(--muted)">${SKILL_LEVELS[picks.skill]?.label||'?'}</span></button>
-              <button class="popup-trigger" data-axis="4"><span style="color:var(--faint)">FAR area</span><span style="font-weight:700;color:var(--muted)">${farLbl}</span></button>
-              <button class="popup-trigger" data-axis="5"><span style="color:var(--faint)">Confidence</span><span style="font-weight:700;color:var(--primary)">${picks.confidence}/5</span></button>
-            </div>
-            <button class="btn primary" style="width:100%;margin-top:var(--s4)" id="sv">Save → next</button></div>`;
-        }
-        h += `</div>`;
-      }
-
-      if (saved) h += `<div class="card" style="border-color:var(--success);margin-top:var(--s3);background:var(--success-soft);padding:var(--s3)"><span style="color:var(--success)">✓</span> <strong style="color:var(--success)">${esc(saved)}</strong></div>`;
-
-      h += `<div class="card-sm" style="margin-top:var(--s3);display:flex;justify-content:space-around;text-align:center"><div><div style="font-weight:800;font-size:var(--t-lg)">${store.entries.length}</div><div style="font-size:10px;color:var(--faint)">Total</div></div><div><div style="font-weight:800;font-size:var(--t-lg)">${today}</div><div style="font-size:10px;color:var(--faint)">Today</div></div><div><div style="font-weight:800;font-size:var(--t-lg);color:var(--primary)">${due}</div><div style="font-size:10px;color:var(--faint)">Due</div></div></div>`;
-
-      w.innerHTML = h;
-      if (popup > 0) showPopup(w);
-      else wire(w);
-    } catch(e) {
-      w.innerHTML = `<div class="card state" style="margin:var(--s4)"><div class="big">❌</div><h2>Error</h2><pre style="font-size:12px;color:var(--danger)">${esc(e.message||String(e))}</pre><button class="btn" onclick="location.reload()">Reload</button></div>`;
+      const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = ev => r(ev.target.result); rd.readAsDataURL(f); });
+      const resp = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64 })
+      });
+      if (!resp.ok) throw new Error(`Server error ${resp.status}`);
+      const d = await resp.json();
+      addEntry({
+        section, module: mod,
+        question: d.question || '',
+        yourAnswer: d.yourAnswer || '',
+        correctAnswer: d.correctAnswer || '',
+        outcome: d.outcome || 'honest_gap',
+        failureReason: d.failureReason || 'conceptual',
+        skillLevel: d.skillLevel || 'application',
+        farNode: d.farNode || '',
+        farSubNode: d.farSubNode || '',
+        confidence: 3
+      });
+      result.innerHTML = `<div class="card" style="border-color:var(--success);background:var(--success-soft);padding:var(--s3)"><span style="color:var(--success)">✓</span> <strong>${d.question?.slice(0,60)||'Saved'}...</strong><br><small style="color:var(--muted)">${d.yourAnswer||''} → ${d.correctAnswer||''}</small></div>`;
+      pi.value = '';
+    } catch (err) {
+      result.innerHTML = `<div class="card" style="border-color:var(--danger)"><span style="color:var(--danger)">⚠ ${err.message}</span></div>`;
     }
-  }
+  };
 
-  function showPopup(w) {
-    let title, items, pickFn;
-    switch (popup) {
-      case 1: title = 'Outcome'; items = Object.entries(OUTCOMES).map(([k,v]) => ({k, label:v.icon+' '+v.label, desc:v.desc})); pickFn = k => { picks.outcome = k; popup = 2; render(); }; break;
-      case 2: title = 'Why did you miss it?'; items = Object.entries(FAILURE_REASONS).map(([k,v]) => ({k, label:v.label, desc:v.short})); pickFn = k => { picks.failure = k; popup = 3; render(); }; break;
-      case 3: title = 'Skill level'; items = Object.entries(SKILL_LEVELS).map(([k,v]) => ({k, label:v.label, desc:v.short})); pickFn = k => { picks.skill = k; popup = 4; render(); }; break;
-      case 4: title = 'FAR content area'; items = FAR_NODES_FLAT.map(n => ({k:n.key, label:n.label, desc:n.area})); pickFn = k => { picks.farNode = k; popup = 5; render(); }; break;
-      case 5: title = 'Confidence (1-5)'; items = [1,2,3,4,5].map(n => ({k:n, label:String(n)})); pickFn = n => { picks.confidence = n; popup = 0; render(); }; break;
-    }
-    const overlay = document.createElement('div'); overlay.id = 'popup-overlay';
-    overlay.innerHTML = `<div class="popup-backdrop"></div><div class="popup-card"><div class="popup-title">${title}</div><div class="popup-items">${items.map(i => `<button class="popup-choice${popup===1&&i.k==='misconception'?' popup-danger':''}" data-k="${i.k}"><span>${i.label}</span>${i.desc?`<span style="font-size:11px;color:var(--faint);display:block">${i.desc}</span>`:''}</button>`).join('')}</div></div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelectorAll('.popup-choice').forEach(b => b.addEventListener('click', () => { pickFn(popup===5?parseInt(b.dataset.k):b.dataset.k); overlay.remove(); }));
-    overlay.querySelector('.popup-backdrop').addEventListener('click', () => { popup = 0; overlay.remove(); render(); });
-  }
-
-  function wire(w) {
-    w.querySelector('#cz')?.addEventListener('click', () => w.querySelector('#pi')?.click());
-    w.querySelector('#pi')?.addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = ev => { photo = ev.target.result; data = null; err = null; render(); }; rd.readAsDataURL(f); });
-    w.querySelector('#sec')?.addEventListener('input', e => { section = e.target.value; });
-    w.querySelector('#mod')?.addEventListener('input', e => { module = e.target.value; });
-    w.querySelector('#rk')?.addEventListener('click', () => { photo = null; data = null; err = null; popup = 0; render(); });
-    w.querySelector('#ex')?.addEventListener('click', async () => { busy = true; err = null; render(); try { data = await extractFromPhoto(photo); picks.outcome = data.outcome||'honest_gap'; picks.failure = data.failureReason||'conceptual'; picks.skill = data.skillLevel||'application'; picks.farNode = data.farNode||''; picks.farSub = data.farSubNode||''; picks.confidence = 3; busy = false; popup = 1; render(); } catch (e) { busy = false; err = e.message; render(); } });
-    w.querySelector('#rb')?.addEventListener('click', () => { err = null; w.querySelector('#ex')?.click(); });
-    w.querySelectorAll('.popup-trigger').forEach(b => b.addEventListener('click', () => { popup = parseInt(b.dataset.axis); render(); }));
-    w.querySelector('#sv')?.addEventListener('click', () => {
-      const q = w.querySelector('#eq')?.value||''; if (!q.trim()) return alert('Question required');
-      addEntry({ section, module, question: q.trim(), yourAnswer: (w.querySelector('#ey')?.value||'').trim(), correctAnswer: (w.querySelector('#ec')?.value||'').trim(), outcome: picks.outcome, failureReason: picks.failure, skillLevel: picks.skill, farNode: picks.farNode, farSubNode: picks.farSub||'', confidence: picks.confidence });
-      saved = module||'Logged'; photo = null; data = null; popup = 0; setTimeout(() => { saved = null; render(); }, 2500); render();
-    });
-  }
-
-  render(); return w;
+  return w;
 }

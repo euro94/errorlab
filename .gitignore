@@ -1,4 +1,5 @@
 node_modules/
+.openai_key
 .builder_env
 *.pyc
 __pycache__/
