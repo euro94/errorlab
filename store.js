@@ -1,23 +1,23 @@
-/* ErrorLab — store.js v2: 6-axis diagnostic matrix */
+/* ErrorLab — store.js v3: full AICPA FAR content taxonomy */
 import { fsrs, createEmptyCard, Rating, generatorParameters } from './fsrs.js';
 
 /* ---- Axis enums ---- */
 export const OUTCOMES = {
-  mastered:     { label: 'Mastered',      desc: 'Right + Confident',          icon: '✓', color: '#2d8a56' },
-  fragile:      { label: 'Fragile',       desc: 'Right + Unsure',             icon: '⚡', color: '#b3711a' },
-  honest_gap:   { label: 'Honest Gap',    desc: 'Wrong + Unsure',             icon: '📖', color: '#c4413c' },
-  misconception:{ label: 'Misconception', desc: 'Wrong + Confident — PRIORITY',icon: '⚠', color: '#b71c1c' }
+  mastered:      { label: 'Mastered',      desc: 'Right + Confident',          icon: '✓' },
+  fragile:       { label: 'Fragile',       desc: 'Right + Unsure',             icon: '⚡' },
+  honest_gap:    { label: 'Honest Gap',    desc: 'Wrong + Unsure',             icon: '📖' },
+  misconception: { label: 'Misconception', desc: 'Wrong + Confident — PRIORITY',icon: '⚠' }
 };
 
 export const FAILURE_REASONS = {
-  conceptual:       { label: 'Conceptual',        short: 'concept' },
-  application:      { label: 'Application',       short: 'apply' },
-  computational:    { label: 'Computational',      short: 'calc' },
-  misread:          { label: 'Misread',           short: 'read' },
-  trap:             { label: 'Fell for trap',     short: 'trap' },
-  pacing:           { label: 'Pacing / Rushed',   short: 'pace' },
-  incomplete:       { label: 'Incomplete knowledge', short: 'partial' },
-  stale:            { label: 'Stale / Decayed',   short: 'decay' }
+  conceptual:    { label: 'Conceptual',        short: 'concept' },
+  application:   { label: 'Application',       short: 'apply' },
+  computational: { label: 'Computational',     short: 'calc' },
+  misread:       { label: 'Misread',           short: 'read' },
+  trap:          { label: 'Fell for trap',     short: 'trap' },
+  pacing:        { label: 'Pacing / Rushed',   short: 'pace' },
+  incomplete:    { label: 'Incomplete knowledge', short: 'partial' },
+  stale:         { label: 'Stale / Decayed',   short: 'decay' }
 };
 
 export const SKILL_LEVELS = {
@@ -26,19 +26,91 @@ export const SKILL_LEVELS = {
   analysis:    { label: 'Analysis',                    short: 'L3' }
 };
 
-export const FAR_NODES = {
-  conceptual_framework:  { label: 'Conceptual Framework & Reporting',  area: 'Framework' },
-  fs_accounts:           { label: 'Select Financial Stmt Accounts',    area: 'Accounts' },
-  select_transactions:   { label: 'Select Transactions',               area: 'Transactions' },
-  state_local_gov:       { label: 'State & Local Governments',         area: 'Gov/NFP' }
-};
+// Full AICPA FAR Blueprint content areas
+export const FAR_NODES = [
+  { key: 'area1_conceptual', label: 'AREA I — Financial Reporting', nodes: [
+    { key: 'conceptual_framework', label: 'Conceptual framework & general standards', nodes: [
+      { key: 'cf_elements', label: 'Conceptual framework (elements, qualitative characteristics, recognition/measurement)' },
+      { key: 'going_concern', label: 'Going concern' },
+      { key: 'ratios_fsa', label: 'Ratios & financial-statement analysis' },
+    ]},
+    { key: 'for_profit_gp', label: 'For-profit general-purpose statements', nodes: [
+      { key: 'balance_sheet', label: 'Balance sheet / classification' },
+      { key: 'income_statement', label: 'Income statement & discontinued operations' },
+      { key: 'oci', label: 'Comprehensive income / OCI' },
+      { key: 'statement_equity', label: 'Statement of changes in equity' },
+      { key: 'cash_flows', label: 'Statement of cash flows (direct/indirect, classification)' },
+      { key: 'notes_disclosures', label: 'Notes & disclosures (risks/uncertainties, related parties, subsequent events)' },
+      { key: 'segment_reporting', label: 'Segment reporting' },
+      { key: 'interim_reporting', label: 'Interim reporting' },
+    ]},
+    { key: 'other_frameworks', label: 'Other reporting frameworks & entities', nodes: [
+      { key: 'nfp_reporting', label: 'Not-for-profit (statement of activities, net asset classes, contributions, pledges)' },
+      { key: 'special_purpose', label: 'Special-purpose frameworks (cash, modified cash, tax basis)' },
+      { key: 'sec_reporting', label: 'SEC reporting (10-K, 10-Q, forms, public vs. nonpublic)' },
+    ]},
+    { key: 'slg', label: 'State & local government', nodes: [
+      { key: 'slg_measurement', label: 'Measurement focus / basis of accounting (modified accrual vs. accrual)' },
+      { key: 'slg_fund_types', label: 'Fund types (governmental, proprietary, fiduciary)' },
+      { key: 'slg_fund_fs', label: 'Fund financial statements' },
+      { key: 'slg_gw_fs', label: 'Government-wide statements' },
+      { key: 'slg_reconciliation', label: 'Fund-to-government-wide reconciliation' },
+      { key: 'slg_budgetary', label: 'Budgetary accounting & encumbrances' },
+      { key: 'slg_net_position', label: 'Net position / fund balance classification' },
+      { key: 'slg_mda_rsi', label: 'MD&A and RSI' },
+    ]},
+  ]},
+  { key: 'area2_bs', label: 'AREA II — Select Balance Sheet Accounts', nodes: [
+    { key: 'cash', label: 'Cash & cash equivalents' },
+    { key: 'receivables', label: 'Trade receivables (allowance, write-offs, factoring/pledging)' },
+    { key: 'inventory_costing', label: 'Inventory — costing (FIFO/LIFO/weighted-avg)' },
+    { key: 'inventory_valuation', label: 'Inventory — valuation (LCM/LCNRV, retail, gross-profit)' },
+    { key: 'ppe_capitalize', label: 'PP&E — capitalization & interest' },
+    { key: 'ppe_depreciation', label: 'PP&E — depreciation methods' },
+    { key: 'ppe_impairment', label: 'PP&E — impairment & disposal' },
+    { key: 'investments_debt', label: 'Investments — debt securities (HTM/AFS/trading)' },
+    { key: 'investments_equity', label: 'Investments — equity securities & equity method' },
+    { key: 'intangibles', label: 'Intangibles — finite/indefinite, amortization' },
+    { key: 'goodwill', label: 'Goodwill & impairment' },
+    { key: 'payables', label: 'Payables & accrued liabilities' },
+    { key: 'debt_bonds', label: 'Debt — bonds & effective-interest' },
+    { key: 'debt_modification', label: 'Debt — issuance costs, modification/extinguishment, TDR (ASC 470)' },
+    { key: 'equity_stock', label: 'Equity — common/preferred stock' },
+    { key: 'equity_treasury', label: 'Equity — treasury stock' },
+    { key: 'equity_dividends', label: 'Equity — dividends, splits, retained earnings' },
+  ]},
+  { key: 'area3_transactions', label: 'AREA III — Select Transactions', nodes: [
+    { key: 'revenue_606', label: 'Revenue recognition (ASC 606, 5-step, contract costs, % completion)' },
+    { key: 'leases_lessee', label: 'Leases (ASC 842 — lessee)' },
+    { key: 'leases_lessor', label: 'Leases (ASC 842 — lessor)' },
+    { key: 'income_taxes', label: 'Income taxes (ASC 740, deferred tax assets/liabilities, valuation allowance)' },
+    { key: 'business_combos', label: 'Business combinations' },
+    { key: 'consolidations', label: 'Consolidations (NCI, intercompany eliminations)' },
+    { key: 'acct_changes', label: 'Accounting changes & error corrections' },
+    { key: 'contingencies', label: 'Contingencies & commitments' },
+    { key: 'fair_value', label: 'Fair value measurement (ASC 820)' },
+    { key: 'fx', label: 'Foreign currency (transactions & translation)' },
+    { key: 'nonmonetary', label: 'Nonmonetary exchanges' },
+    { key: 'subsequent_events', label: 'Subsequent events' },
+    { key: 'stock_comp', label: 'Stock compensation (ASC 718)' },
+    { key: 'pensions', label: 'Employee benefits / pensions (ASC 715)' },
+    { key: 'derivatives', label: 'Derivatives & hedging (ASC 815)' },
+    { key: 'software_rd', label: 'Software & R&D costs' },
+    { key: 'nfp_transactions', label: 'Not-for-profit transactions (contributions, split-interest agreements)' },
+  ]},
+];
 
-export const REMEDIATION = {
-  untouched:  { label: 'Untouched',  step: 0 },
-  reviewed:   { label: 'Reviewed',   step: 1 },
-  retested:   { label: 'Re-tested',  step: 2 },
-  closed:     { label: 'Closed',     step: 3 }
-};
+// Flatten for lookups
+function flattenNodes(nodes, prefix = '') {
+  const result = [];
+  nodes.forEach(n => {
+    const key = prefix ? prefix + '.' + n.key : n.key;
+    result.push({ key: n.key, fullKey: key, label: n.label, area: prefix.split('.')[0] || n.key });
+    if (n.nodes) result.push(...flattenNodes(n.nodes, key));
+  });
+  return result;
+}
+export const FAR_NODES_FLAT = flattenNodes(FAR_NODES);
 
 /* ---- Store ---- */
 const STORE_KEY = 'errorlab_v2';
@@ -84,30 +156,6 @@ export function applyRating(entry, rating) {
   if (rating === Rating.Again) entry.lapses = (entry.lapses || 0) + 1;
 }
 
-/**
- * New entry shape (v2 6-axis):
- * {
- *   id, date, section, module,
- *   question, yourAnswer, correctAnswer,
- *   // Axis 1
- *   outcome: 'mastered'|'fragile'|'honest_gap'|'misconception',
- *   // Axis 2
- *   failureReason: 'conceptual'|'application'|'computational'|'misread'|'trap'|'pacing'|'incomplete'|'stale',
- *   // Axis 3
- *   skillLevel: 'remembering'|'application'|'analysis',
- *   // Axis 4
- *   farNode: 'conceptual_framework'|'fs_accounts'|'select_transactions'|'state_local_gov',
- *   farSubNode: '' (free text — e.g. "deferred taxes"),
- *   // Axis 5
- *   confidence: 1-5,
- *   timePerQ: number (seconds),
- *   firstExposure: boolean,
- *   // Axis 6
- *   remediation: 'untouched'|'reviewed'|'retested'|'closed',
- *   // FSRS
- *   fsrs, reps, lapses
- * }
- */
 export function addEntry(data) {
   const entry = {
     id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
@@ -120,7 +168,7 @@ export function addEntry(data) {
     outcome: data.outcome || 'honest_gap',
     failureReason: data.failureReason || 'conceptual',
     skillLevel: data.skillLevel || 'application',
-    farNode: data.farNode || 'select_transactions',
+    farNode: data.farNode || '',
     farSubNode: data.farSubNode || '',
     confidence: data.confidence || 3,
     timePerQ: data.timePerQ || 0,

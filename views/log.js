@@ -1,5 +1,5 @@
 /* ErrorLab — views/log.js: camera + AI + sequential popup matrix */
-import { addEntry, OUTCOMES, FAILURE_REASONS, SKILL_LEVELS, FAR_NODES } from '../store.js';
+import { addEntry, OUTCOMES, FAILURE_REASONS, SKILL_LEVELS, FAR_NODES_FLAT } from '../store.js';
 import { extractFromPhoto, hasApiKey, setApiKey } from '../openai.js';
 
 function esc(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -7,7 +7,7 @@ function att(s) { return esc(s).replace(/"/g,'&quot;'); }
 
 let section = '', module = '';
 let photo = null, data = null, busy = false, err = null, saved = null;
-let picks = { outcome:'honest_gap', failure:'conceptual', skill:'application', farNode:'select_transactions', farSub:'', confidence:3 };
+let picks = { outcome:'honest_gap', failure:'conceptual', skill:'application', farNode:'', farSub:'', confidence:3 };
 let popup = 0; // 0=no popup, 1-5=axes
 
 export function renderLog() {
@@ -51,7 +51,7 @@ export function renderLog() {
             ${popupRow('Outcome', OUTCOMES[picks.outcome]?.label||'?', picks.outcome === 'misconception' ? '#b71c1c' : 'var(--primary)', 1)}
             ${popupRow('Why missed', FAILURE_REASONS[picks.failure]?.label||'?', 'var(--muted)', 2)}
             ${popupRow('Skill', SKILL_LEVELS[picks.skill]?.label||'?', 'var(--muted)', 3)}
-            ${popupRow('FAR area', FAR_NODES[picks.farNode]?.label||'?', 'var(--muted)', 4)}
+            ${popupRow('FAR area', FAR_NODES_FLAT.find(n=>n.key===picks.farNode)?.label||'Select...', 'var(--muted)', 4)}
             ${popupRow('Confidence', picks.confidence+'/5', 'var(--primary)', 5)}
           </div>
 
@@ -82,7 +82,7 @@ export function renderLog() {
       case 1: title = 'Outcome'; items = Object.entries(OUTCOMES).map(([k,v]) => ({ k, label: v.icon+' '+v.label, desc: v.desc, color: v.color })); pickFn = k => { picks.outcome = k; popup = 2; r(); }; break;
       case 2: title = 'Why did you miss it?'; items = Object.entries(FAILURE_REASONS).map(([k,v]) => ({ k, label: v.label, desc: v.short })); pickFn = k => { picks.failure = k; popup = 3; r(); }; break;
       case 3: title = 'Skill level'; items = Object.entries(SKILL_LEVELS).map(([k,v]) => ({ k, label: v.label, desc: v.short })); pickFn = k => { picks.skill = k; popup = 4; r(); }; break;
-      case 4: title = 'FAR content area'; items = Object.entries(FAR_NODES).map(([k,v]) => ({ k, label: v.label, desc: v.area })); pickFn = k => { picks.farNode = k; popup = 5; r(); }; break;
+      case 4: title = 'FAR content area'; items = FAR_NODES_FLAT.map(n => ({ k: n.key, label: n.label, desc: n.area })); pickFn = k => { picks.farNode = k; popup = 5; r(); }; break;
       case 5: title = 'Confidence (1-5)'; items = [1,2,3,4,5].map(n => ({ k: n, label: String(n) })); pickFn = n => { picks.confidence = n; popup = 0; r(); }; break;
     }
 
@@ -101,7 +101,7 @@ export function renderLog() {
     w.querySelector('#sec')?.addEventListener('input', e => { section = e.target.value; });
     w.querySelector('#mod')?.addEventListener('input', e => { module = e.target.value; });
     w.querySelector('#rk')?.addEventListener('click', () => { photo = null; data = null; err = null; popup = 0; r(); });
-    w.querySelector('#ex')?.addEventListener('click', async () => { busy = true; r(); try { data = await extractFromPhoto(photo); picks.outcome = data.outcome||'honest_gap'; picks.failure = data.failureReason||'conceptual'; picks.skill = data.skillLevel||'application'; picks.farNode = data.farNode||'select_transactions'; picks.farSub = data.farSubNode||''; picks.confidence = 3; busy = false; popup = 1; r(); } catch (e) { busy = false; err = e.message; r(); } });
+    w.querySelector('#ex')?.addEventListener('click', async () => { busy = true; r(); try { data = await extractFromPhoto(photo); picks.outcome = data.outcome||'honest_gap'; picks.failure = data.failureReason||'conceptual'; picks.skill = data.skillLevel||'application'; picks.farNode = data.farNode||''; picks.farSub = data.farSubNode||''; picks.confidence = 3; busy = false; popup = 1; r(); } catch (e) { busy = false; err = e.message; r(); } });
     w.querySelector('#rb')?.addEventListener('click', () => { err = null; w.querySelector('#ex')?.click(); });
     w.querySelectorAll('.popup-trigger').forEach(b => b.addEventListener('click', () => { popup = parseInt(b.dataset.axis); r(); }));
     w.querySelector('#sv')?.addEventListener('click', () => {

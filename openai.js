@@ -34,13 +34,12 @@ const SYSTEM_PROMPT = `You are an OCR and accounting question extractor for CPA 
   "question": "Full question stem",
   "correctAnswer": "Correct answer (letter + text)",
   "yourAnswer": "Student's wrong answer",
-  "topic": "Topic (e.g. Bonds, Leases, Deferred Taxes)",
-  "outcome": "Guess the outcome: 'mastered' (right+confident), 'fragile' (right+unsure), 'honest_gap' (wrong+unsure), or 'misconception' (wrong+confident). Default to 'honest_gap' if unclear.",
-  "failureReason": "Best guess at failure type: 'conceptual', 'application', 'computational', 'misread', 'trap', 'pacing', 'incomplete', or 'stale'. Default to 'conceptual'.",
-  "skillLevel": "AICPA blueprint level: 'remembering', 'application', or 'analysis'",
-  "farNode": "FAR content area: 'conceptual_framework', 'fs_accounts', 'select_transactions', or 'state_local_gov'",
-  "farSubNode": "More specific sub-area (e.g. 'bond amortization', 'lease classification', 'NCI calculation')",
-  "errorNote": "One-line diagnosis of the mistake"
+  "topic": "Topic (e.g. Bond amortization, Lease classification)",
+  "outcome": "Guess: 'mastered', 'fragile', 'honest_gap', or 'misconception'. Default 'honest_gap'.",
+  "failureReason": "Guess: 'conceptual', 'application', 'computational', 'misread', 'trap', 'pacing', 'incomplete', or 'stale'. Default 'conceptual'.",
+  "skillLevel": "AICPA level: 'remembering', 'application', or 'analysis'",
+  "farNode": "CPA FAR content area key from this list — pick closest match:\nconceptual_framework, going_concern, ratios_fsa, balance_sheet, income_statement, oci, statement_equity, cash_flows, notes_disclosures, segment_reporting, interim_reporting, nfp_reporting, special_purpose, sec_reporting, slg_measurement, slg_fund_types, slg_fund_fs, slg_gw_fs, slg_reconciliation, slg_budgetary, slg_net_position, slg_mda_rsi, cash, receivables, inventory_costing, inventory_valuation, ppe_capitalize, ppe_depreciation, ppe_impairment, investments_debt, investments_equity, intangibles, goodwill, payables, debt_bonds, debt_modification, equity_stock, equity_treasury, equity_dividends, revenue_606, leases_lessee, leases_lessor, income_taxes, business_combos, consolidations, acct_changes, contingencies, fair_value, fx, nonmonetary, subsequent_events, stock_comp, pensions, derivatives, software_rd, nfp_transactions",
+  "errorNote": "One-line diagnosis"
 }
 
 Rules: return ONLY valid JSON, no markdown. Use "[unreadable]" for unreadable fields.`;
