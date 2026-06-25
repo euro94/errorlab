@@ -100,9 +100,23 @@ export async function extractFromPhoto(base64Image) {
 
   // Parse the JSON from the response
   try {
-    // Try direct parse first
     const parsed = JSON.parse(content);
     return {
+      question: parsed.question || '',
+      correctAnswer: parsed.correctAnswer || '',
+      yourAnswer: parsed.yourAnswer || '',
+      topic: parsed.topic || '',
+      outcome: parsed.outcome || 'honest_gap',
+      failureReason: parsed.failureReason || 'conceptual',
+      skillLevel: parsed.skillLevel || 'application',
+      farNode: parsed.farNode || '',
+      farSubNode: parsed.farSubNode || '',
+      errorNote: parsed.errorNote || ''
+    };
+  } catch (e) {
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[1]);
       return {
         question: parsed.question || '',
         correctAnswer: parsed.correctAnswer || '',
@@ -111,27 +125,11 @@ export async function extractFromPhoto(base64Image) {
         outcome: parsed.outcome || 'honest_gap',
         failureReason: parsed.failureReason || 'conceptual',
         skillLevel: parsed.skillLevel || 'application',
-        farNode: parsed.farNode || 'select_transactions',
+        farNode: parsed.farNode || '',
         farSubNode: parsed.farSubNode || '',
         errorNote: parsed.errorNote || ''
       };
-      } catch (e) {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[1]);
-        return {
-          question: parsed.question || '',
-          correctAnswer: parsed.correctAnswer || '',
-          yourAnswer: parsed.yourAnswer || '',
-          topic: parsed.topic || '',
-          outcome: parsed.outcome || 'honest_gap',
-          failureReason: parsed.failureReason || 'conceptual',
-          skillLevel: parsed.skillLevel || 'application',
-          farNode: parsed.farNode || 'select_transactions',
-          farSubNode: parsed.farSubNode || '',
-          errorNote: parsed.errorNote || ''
-        };
-      }
+    }
     throw new Error('Could not parse AI response. Try again with a clearer photo.');
   }
 }
