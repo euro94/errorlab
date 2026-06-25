@@ -15,6 +15,7 @@ export function renderLog() {
 
   function r() {
     try {
+      w.innerHTML = '<div class="card" style="margin:var(--s4);text-align:center"><div class="spinner"></div><p>Loading...</p></div>';
       if (!hasApiKey()) {
         w.innerHTML = `<div class="section-head">Fast Log</div><div class="card state"><div class="big">🔑</div><h2>API Key</h2><p>Enter your OpenAI key to enable photo capture</p><input class="input" id="ki" type="password" placeholder="sk-..." style="max-width:280px;display:block;margin:0 auto var(--s3)"/><button class="btn primary" id="ks">Save Key</button></div>`;
         w.querySelector('#ks').onclick = () => { const v = w.querySelector('#ki').value.trim(); if (v && v.startsWith('sk-')) { setApiKey(v); r(); } };
@@ -115,5 +116,6 @@ export function renderLog() {
     });
   }
 
-  r(); return w;
+  try { r(); } catch(e) { w.innerHTML = '<div class="card state" style="margin:var(--s4)"><div class="big">❌</div><h2>Fatal Error</h2><p style="font-family:var(--mono);font-size:12px;color:var(--danger)">'+esc(e.message||String(e))+'</p></div>'; }
+  return w;
 }
