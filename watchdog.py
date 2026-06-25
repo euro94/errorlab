@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Restart
     flags = subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
     subprocess.Popen(
-        ["python", "-m", "http.server", str(PORT), "--bind", "127.0.0.1"],
+        ["python", "server.py"],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
