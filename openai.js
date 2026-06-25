@@ -28,22 +28,22 @@ export function setApiKey(key) {
   }
 }
 
-const SYSTEM_PROMPT = `You are an OCR and accounting question extractor. You receive a photo of a Becker CPA review question (FAR section) where the student got it wrong. Extract the following and return ONLY valid JSON with these exact keys:
+const SYSTEM_PROMPT = `You are an OCR and accounting question extractor for CPA FAR exam prep. You receive a photo of a Becker question the student got wrong. Extract this JSON:
 
 {
-  "question": "The full question stem exactly as shown",
-  "correctAnswer": "The correct answer choice (letter + text)",
-  "yourAnswer": "The answer the student selected / is marked (the wrong one)",
-  "topic": "The accounting topic (e.g. Bonds, Leases, Consolidation, NFP, Revenue Recognition, etc.)",
-  "errorCategory": "Why the student likely got it wrong. Pick ONE: 'reading' (misread the stem), 'misinterpret' (wrong concept applied), 'calc' (math slip), or 'understanding' (genuine knowledge gap). Compare the student's wrong answer to the correct answer to determine the most likely error type.",
-  "errorNote": "Brief one-sentence diagnosis of what went wrong (e.g. 'used stated rate instead of effective rate', 'forgot to include initial direct costs', 'applied wrong ownership percentage')"
+  "question": "Full question stem",
+  "correctAnswer": "Correct answer (letter + text)",
+  "yourAnswer": "Student's wrong answer",
+  "topic": "Topic (e.g. Bonds, Leases, Deferred Taxes)",
+  "outcome": "Guess the outcome: 'mastered' (right+confident), 'fragile' (right+unsure), 'honest_gap' (wrong+unsure), or 'misconception' (wrong+confident). Default to 'honest_gap' if unclear.",
+  "failureReason": "Best guess at failure type: 'conceptual', 'application', 'computational', 'misread', 'trap', 'pacing', 'incomplete', or 'stale'. Default to 'conceptual'.",
+  "skillLevel": "AICPA blueprint level: 'remembering', 'application', or 'analysis'",
+  "farNode": "FAR content area: 'conceptual_framework', 'fs_accounts', 'select_transactions', or 'state_local_gov'",
+  "farSubNode": "More specific sub-area (e.g. 'bond amortization', 'lease classification', 'NCI calculation')",
+  "errorNote": "One-line diagnosis of the mistake"
 }
 
-Rules:
-- If you can't read something clearly, use "[unreadable]"
-- If there's no clearly marked wrong answer, set yourAnswer to "[not visible]" and errorCategory to "understanding"
-- errorCategory MUST be one of: reading, misinterpret, calc, understanding
-- Return ONLY the JSON object, no markdown, no explanation`;
+Rules: return ONLY valid JSON, no markdown. Use "[unreadable]" for unreadable fields.`;
 
 export async function extractFromPhoto(base64Image) {
   const apiKey = getApiKey();
@@ -104,27 +104,35 @@ export async function extractFromPhoto(base64Image) {
     // Try direct parse first
     const parsed = JSON.parse(content);
     return {
-      question: parsed.question || '',
-      correctAnswer: parsed.correctAnswer || '',
-      yourAnswer: parsed.yourAnswer || '',
-      topic: parsed.topic || '',
-      errorCategory: parsed.errorCategory || 'understanding',
-      errorNote: parsed.errorNote || ''
-    };
-  } catch (e) {
-    // Try to extract JSON from markdown code blocks
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[1]);
       return {
         question: parsed.question || '',
         correctAnswer: parsed.correctAnswer || '',
         yourAnswer: parsed.yourAnswer || '',
         topic: parsed.topic || '',
-        errorCategory: parsed.errorCategory || 'understanding',
+        outcome: parsed.outcome || 'honest_gap',
+        failureReason: parsed.failureReason || 'conceptual',
+        skillLevel: parsed.skillLevel || 'application',
+        farNode: parsed.farNode || 'select_transactions',
+        farSubNode: parsed.farSubNode || '',
         errorNote: parsed.errorNote || ''
       };
-    }
+      } catch (e) {
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        return {
+          question: parsed.question || '',
+          correctAnswer: parsed.correctAnswer || '',
+          yourAnswer: parsed.yourAnswer || '',
+          topic: parsed.topic || '',
+          outcome: parsed.outcome || 'honest_gap',
+          failureReason: parsed.failureReason || 'conceptual',
+          skillLevel: parsed.skillLevel || 'application',
+          farNode: parsed.farNode || 'select_transactions',
+          farSubNode: parsed.farSubNode || '',
+          errorNote: parsed.errorNote || ''
+        };
+      }
     throw new Error('Could not parse AI response. Try again with a clearer photo.');
   }
 }

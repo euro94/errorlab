@@ -766,3 +766,39 @@ textarea.input {
   margin: 0 auto var(--s2);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   AXIS BUTTONS — rapid-fire matrix
+   ============================================================ */
+.btns-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s1);
+}
+.btns-grid.btns-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.axis-btn {
+  padding: var(--s2) var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 120ms var(--ease);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.axis-btn:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.axis-btn:active { transform: scale(0.95); }
+.axis-btn.sel {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}

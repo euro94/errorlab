@@ -9,6 +9,7 @@ import { renderDashboard } from './views/dashboard.js';
 
 /* ---- Init ---- */
 loadStore();
+window.__errorlabGetStore = getStore; // expose for views
 const root = document.getElementById('root');
 
 /* ---- Router ---- */

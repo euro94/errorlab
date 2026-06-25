@@ -31,14 +31,14 @@ export function renderErrors() {
   function renderTable(activeFilter) {
     filter = activeFilter || filter;
     const entries = store.entries.slice().reverse();
-    const filtered = filter === 'all' ? entries : entries.filter(e => e.category === filter);
+    const filtered = filter === 'all' ? entries : entries.filter(e => e.outcome === filter);
 
     let html = `
       <div class="section-head">Error Log</div>
       <div class="filter-bar">
         <button class="btn small ${filter === 'all' ? 'active-filter' : ''}" data-filter="all">All (${store.entries.length})</button>
         ${Object.entries(CATEGORIES).map(([k, v]) => `
-          <button class="btn small ${filter === k ? 'active-filter' : ''}" data-filter="${k}">${v.label} (${store.entries.filter(e => e.category === k).length})</button>
+          <button class="btn small ${filter === 'outcome_' + k ? 'active-filter' : ''}" data-filter="${k}">${v.label} (${0})</button>
         `).join('')}
       </div>
     `;
@@ -53,12 +53,12 @@ export function renderErrors() {
       `;
     } else {
       filtered.forEach(e => {
-        const cat = CATEGORIES[e.category] || CATEGORIES.understanding;
+        const outcome = {mastered:{label:'Mastered'},fragile:{label:'Fragile'},honest_gap:{label:'Honest Gap'},misconception:{label:'Misconception'}}[e.outcome]||{label:'?'};
         html += `
           <div class="log-item">
             <div class="log-top">
               <span class="pill topic">${escapeHtml(e.topic)}</span>
-              <span class="pill ${e.category}">${cat.label}</span>
+              <span class="pill">${outcome.label}</span>
               <span class="pill" style="background:var(--surface-2);color:var(--muted)">Due ${formatDue(e.fsrs)}</span>
               <span style="flex:1"></span>
               <span class="log-meta">${prettyDate(e.date)}</span>
