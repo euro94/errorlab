@@ -70,6 +70,7 @@ screen{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
+<script>navigator.serviceWorker.getRegistrations().then(r=>r.forEach(sw=>sw.unregister()));</script>
 <div class="app" id="app"></div>
 <script type="module">
 /* ===================== FAR LEDGER — vanilla PWA ===================== */
