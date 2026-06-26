@@ -189,3 +189,14 @@ export function getDueEntries() {
   const now = new Date();
   return store.entries.filter(e => e.fsrs && new Date(e.fsrs.due) <= now).sort((a, b) => new Date(a.fsrs.due) - new Date(b.fsrs.due));
 }
+
+export function getCategoryStats() {
+  const cats = {};
+  store.entries.forEach(e => { const c = e.outcome || 'honest_gap'; cats[c] = (cats[c] || 0) + 1; });
+  return cats;
+}
+
+export function getWeeklyLogs() {
+  const weekAgo = Date.now() - 7 * 86400000;
+  return store.entries.filter(e => { try { return new Date(e.date).getTime() > weekAgo; } catch(_) { return false; } });
+}
