@@ -201,57 +201,80 @@ function Capture(){
     const fprint=fields?fp(fields):'';
     const computedFresh=!(fprint&&seenSet.has(fprint));
 
-    const panel=el('div','panel');
-    if(img)panel.innerHTML+=`<img class="shot-pre" src="${img}" />`;
-    if(fields){
-      panel.innerHTML+=`<div style="margin-top:10px"><div class="field"><span class="fl">Stem</span><textarea class="ta" id="estem" rows="2">${(fields.stem||'').replace(/</g,'&lt;')}</textarea></div>
-        <div class="field"><span class="fl">My answer / Correct</span><div style="display:flex;gap:6px"><input class="inp" id="emy" value="${(fields.myAnswer||'').replace(/"/g,'&quot;')}" placeholder="Your pick" style="flex:1"/><input class="inp" id="ecr" value="${(fields.correctAnswer||'').replace(/"/g,'&quot;')}" placeholder="Correct" style="flex:1"/></div></div></div>`;
-    }
-
-    panel.innerHTML+=`<div class="field"><span class="fl">Got it right?</span><div class="seg"><button class="seg-b${correct===true?' on green':''}" id="br">Right</button><button class="seg-b${correct===false?' on coral':''}" id="bw">Wrong</button></div></div>
-      <div class="field"><span class="fl">Confidence — ${['','guess','low','medium','high','certain'][confidence]}</span><input class="range" type="range" min="1" max="5" value="${confidence}" id="rconf"/></div>`;
-    if(correct!==null){
-      const oc=outcome(correct,confidence),om=OUTCOMES[oc];
-      panel.innerHTML+=`<div class="outcome-pill" style="--oc:${om.c}"><span class="oc-d"></span>${om.l}</div>`;
-    }
-    if(correct===false||(correct===true&&confidence<4)){
-      panel.innerHTML+=`<div class="field"><span class="fl">Why?</span><select class="sel" id="sreason"><option value="">— reason —</option>${REASONS.map(([v,l])=>`<option value="${v}" ${reason===v?'selected':''}>${l}</option>`).join('')}</select></div>`;
-    }
-    panel.innerHTML+=`<div class="field"><span class="fl">Content node *</span><select class="sel" id="snode"><option value="">— pick —</option>${Object.entries(NODES).map(([g,arr])=>`<optgroup label="${g.replace('I','Area I — ').replace('II','Area II — ').replace('III','Area III — ')}">${arr.map(n=>`<option value="${n}" ${node===n?'selected':''}>${n}</option>`).join('')}</optgroup>`).join('')}</select></div>
-      <div class="field"><span class="fl">Skill</span><div class="seg">${SKILLS.map(([v,l])=>`<button class="seg-b${skill===v?' on':''}" data-s="${v}">${l.split(' ')[0]}</button>`).join('')}</div></div>
-      <div class="field"><span class="fl">Time (sec)</span><input class="num" type="number" value="${secs}" id="isecs" placeholder="opt"/></div>
-      <div class="field"><span class="fl">Exposure</span><span style="color:${computedFresh?'var(--teal)':'var(--amber)'};font-size:12px">${computedFresh?'Fresh':'Seen before'}</span></div>`;
-    d.appendChild(panel);
-
-    const bar=el('div','save-bar');bar.innerHTML=`<button class="btn ghost" id="bdiscard">Discard</button><button class="btn primary" id="bsave" ${!node?'disabled':''}>${correct===false||(correct===true&&confidence<4)?'Log + make card':'Log question'}</button>`;
-    d.appendChild(bar);
-
-    // wire
-    d.querySelector('#br')?.addEventListener('click',()=>{correct=true;renderC();});
-    d.querySelector('#bw')?.addEventListener('click',()=>{correct=false;renderC();});
-    d.querySelector('#rconf')?.addEventListener('input',e=>{confidence=+e.target.value;renderC();});
-    d.querySelector('#sreason')?.addEventListener('change',e=>{reason=e.target.value;renderC();});
-    d.querySelector('#snode')?.addEventListener('change',e=>{node=e.target.value;renderC();});
-    d.querySelector('#isecs')?.addEventListener('input',e=>{secs=e.target.value;renderC();});
-    d.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{skill=b.dataset.s;renderC();}));
-    d.querySelector('#bdiscard')?.addEventListener('click',reset);
-    d.querySelector('#bsave')?.addEventListener('click',async()=>{
-      if(!node)return;
-      const stm=d.querySelector('#estem')?.value||fields?.stem||'';
-      const myA=d.querySelector('#emy')?.value||fields?.myAnswer||'';
-      const crA=d.querySelector('#ecr')?.value||fields?.correctAnswer||'';
-      const oc=outcome(correct,confidence);
-      const qid=uid();
-      const q={id:qid,fp:fprint,stem:stm,myAnswer:myA,correctAnswer:crA,correct,confidence,reason,skill,node,timeSeconds:secs?Number(secs):null,firstExposure:computedFresh,outcome:oc,retests:[],createdAt:Date.now()};
-      qs=[q,...qs];saveQ(qs);
-      const isWeak=correct===false||(correct===true&&confidence<4);
-      if(isWeak){
-        const cid=uid();
-        cs=[{id:cid,questionId:qid,node,reason,outcome:oc,front:`${node}: ${stm.slice(0,80)}...`,back:`Correct: ${crA}. ${q.explanation||''}`.slice(0,200),trap:'',status:'draft',createdAt:Date.now()},...cs];
-        saveC(cs);
+    // Show preview + "Tag it" button
+    let popupStep=0; // 0=preview, 1=right/wrong, 2=confidence, 3=reason(if weak), 4=node, 5=skill, 6=save
+    function renderC2(){
+      d.innerHTML='';
+      // Image preview
+      if(img){
+        const pv=el('div','panel');pv.innerHTML=`<div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:12px">Extracted</span><button class="btn ghost" style="padding:6px 10px;font-size:11px" id="bdisc">Discard</button></div><img class="shot-pre" src="${img}" />`;
+        if(fields){
+          pv.innerHTML+=`<div style="margin-top:8px"><textarea class="ta" id="estem" rows="2" style="font-size:12px">${(fields.stem||'').replace(/</g,'&lt;')}</textarea><div style="display:flex;gap:6px;margin-top:6px"><input class="inp" id="emy" value="${(fields.myAnswer||'').replace(/"/g,'&quot;')}" placeholder="Your pick" style="flex:1;font-size:12px"/><input class="inp" id="ecr" value="${(fields.correctAnswer||'').replace(/"/g,'&quot;')}" placeholder="Correct" style="flex:1;font-size:12px"/></div></div>`;
+        }
+        d.appendChild(pv);
+        d.querySelector('#bdisc')?.addEventListener('click',reset);
       }
-      reset();
-    });
+
+      // Current picks summary
+      if(correct!==null){
+        const oc=outcome(correct,confidence),om=OUTCOMES[oc];
+        d.innerHTML+=`<div class="panel" style="display:grid;gap:6px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span>Outcome</span><span style="color:${om.c};font-weight:600">${om.l}</span></div>
+          ${reason?`<div style="display:flex;justify-content:space-between"><span>Why</span><span style="color:var(--muted)">${REASONS.find(r=>r[0]===reason)?.[1]||reason}</span></div>`:''}
+          ${node?`<div style="display:flex;justify-content:space-between"><span>Node</span><span style="color:var(--teal)">${node}</span></div>`:''}
+          ${skill?`<div style="display:flex;justify-content:space-between"><span>Skill</span><span>${SKILLS.find(s=>s[0]===skill)?.[1]||skill}</span></div>`:''}
+          <div style="display:flex;justify-content:space-between"><span>Confidence</span><span>${confidence}/5</span></div>
+          <div style="display:flex;justify-content:space-between"><span>Exposure</span><span style="color:${computedFresh?'var(--teal)':'var(--amber)'}">${computedFresh?'Fresh':'Repeat'}</span></div>
+        </div>`;
+      }
+
+      // Action button
+      const bar=el('div','save-bar');
+      if(correct===null){
+        bar.innerHTML='<button class="btn primary" id="btag">Tag it →</button>';
+      }else if(!node){
+        bar.innerHTML='<button class="btn primary" id="btag">Pick node →</button>';
+      }else{
+        const isWeak=correct===false||(correct===true&&confidence<4);
+        bar.innerHTML=`<button class="btn primary" id="bsave">${isWeak?'Log + make card':'Log question'}</button>`;
+      }
+      d.appendChild(bar);
+
+      // Wire
+      d.querySelector('#btag')?.addEventListener('click',()=>{
+        if(correct===null){
+          showPopup('Got it right?',['✓ Right','✗ Wrong'],v=>{
+            correct=v.startsWith('✓');
+            showPopup('Confidence?',['1 — guess','2 — low','3 — medium','4 — high','5 — certain'],v2=>{
+              confidence=parseInt(v2);
+              const isWeak=correct===false||(correct===true&&confidence<4);
+              if(isWeak){
+                showPopup('Why did you miss it?',REASONS.map(r=>r[1]),v3=>{
+                  reason=REASONS.find(r=>r[1]===v3)?.[0]||'';
+                  showPopup('Content node',Object.values(NODES).flat(),v4=>{node=v4;renderC2();});
+                });
+              }else{
+                showPopup('Content node',Object.values(NODES).flat(),v4=>{node=v4;renderC2();});
+              }
+            });
+          });
+        }else if(!node){
+          showPopup('Content node',Object.values(NODES).flat(),v=>{node=v;renderC2();});
+        }
+      });
+      d.querySelector('#bsave')?.addEventListener('click',async()=>{
+        if(!node)return;
+        const stm=d.querySelector('#estem')?.value||fields?.stem||'';
+        const myA=d.querySelector('#emy')?.value||fields?.myAnswer||'';
+        const crA=d.querySelector('#ecr')?.value||fields?.correctAnswer||'';
+        const oc=outcome(correct,confidence),qid=uid();
+        qs=[{id:qid,fp:fprint,stem:stm,myAnswer:myA,correctAnswer:crA,correct,confidence,reason,skill,node,timeSeconds:secs?Number(secs):null,firstExposure:computedFresh,outcome:oc,retests:[],createdAt:Date.now()},...qs];saveQ(qs);
+        const isWeak=correct===false||(correct===true&&confidence<4);
+        if(isWeak){cs=[{id:uid(),questionId:qid,node,reason,outcome:oc,front:`${node}: ${stm.slice(0,80)}...`,back:`Correct: ${crA}.`,trap:'',status:'draft',createdAt:Date.now()},...cs];saveC(cs);}
+        reset();
+      });
+    }
+    renderC2();
   }
   renderC();return d;
 }
@@ -421,6 +444,25 @@ function el(tag,cls,html,opts={}){
   if(opts.s)Object.assign(e.style,Object.fromEntries(opts.s.split(';').filter(Boolean).map(p=>p.split(':').map(s=>s.trim()))));
   return e;
 }
+// popup helper
+function showPopup(title,items,onPick){
+  const overlay=el('div');overlay.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end';
+  overlay.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.6)" id="popBg"></div>
+    <div style="position:relative;background:var(--surface);border-radius:16px 16px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto;animation:su .2s ease-out;z-index:1">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;text-align:center;margin-bottom:14px">${title}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${items.map((item,i)=>`
+        <button style="padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--text);font-size:14px;font-weight:500;cursor:pointer;text-align:left;width:100%;font-family:inherit" class="pop-item" data-i="${i}">${item}</button>
+      `).join('')}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector('#popBg').addEventListener('click',close);
+  overlay.querySelectorAll('.pop-item').forEach(b=>b.addEventListener('click',()=>{
+    const idx=parseInt(b.dataset.i);close();onPick(items[idx]);
+  }));
+}
+// add popup animation
+const popStyle=document.createElement('style');popStyle.textContent='@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}';document.head.appendChild(popStyle);
 
 // simple state hook for Cards filter  
 function React_state(initial){let v=initial;return[v,x=>{v=x;renderCards();}];}
