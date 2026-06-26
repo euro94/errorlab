@@ -63,18 +63,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({
-                    'question': parsed.get('question', ''),
-                    'correctAnswer': parsed.get('correctAnswer', ''),
-                    'yourAnswer': parsed.get('yourAnswer', ''),
-                    'topic': parsed.get('topic', ''),
-                    'outcome': parsed.get('outcome', 'honest_gap'),
-                    'failureReason': parsed.get('failureReason', 'conceptual'),
-                    'skillLevel': parsed.get('skillLevel', 'application'),
-                    'farNode': parsed.get('farNode', ''),
-                    'farSubNode': parsed.get('farSubNode', ''),
-                    'errorNote': parsed.get('errorNote', '')
-                }).encode())
+                if extra:
+                    self.wfile.write(json.dumps({
+                        'front': parsed.get('front', ''),
+                        'back': parsed.get('back', ''),
+                        'trap': parsed.get('trap', '')
+                    }).encode())
+                else:
+                    self.wfile.write(json.dumps({
+                        'question': parsed.get('question', ''),
+                        'correctAnswer': parsed.get('correctAnswer', ''),
+                        'yourAnswer': parsed.get('yourAnswer', ''),
+                        'topic': parsed.get('topic', ''),
+                        'outcome': parsed.get('outcome', 'honest_gap'),
+                        'failureReason': parsed.get('failureReason', 'conceptual'),
+                        'skillLevel': parsed.get('skillLevel', 'application'),
+                        'farNode': parsed.get('farNode', ''),
+                        'farSubNode': parsed.get('farSubNode', ''),
+                        'errorNote': parsed.get('errorNote', '')
+                    }).encode())
             except Exception as e:
                 self.send_error(502, str(e))
         else:
