@@ -2,7 +2,7 @@
 """ErrorLab HTTP server — serves PWA + proxies OpenAI vision calls with stored key."""
 import http.server, os, sys, json, urllib.request
 
-PORT = 8734
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8734
 ROOT = os.path.dirname(os.path.abspath(__file__))
 KEY_FILE = os.path.join(ROOT, '.openai_key')
 

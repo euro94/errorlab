@@ -2,7 +2,7 @@
 # ErrorLab watchdog — ensures python http.server stays up on :8734
 import os, sys, subprocess, urllib.request, json, time
 
-PORT = 8734
+PORT = 8735
 HEALTH = f"http://127.0.0.1:{PORT}/index.html"
 ROOT = r"C:\Users\yaros\errorlab"
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Restart
     flags = subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
     subprocess.Popen(
-        ["python", "server.py"],
+        ["python", "server.py", "8735"],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
