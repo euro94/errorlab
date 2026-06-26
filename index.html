@@ -1,71 +1,433 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ErrorLab" />
-  <meta name="theme-color" content="#c77d20" />
-  <title>ErrorLab</title>
-  <meta name="description" content="Mass-log Becker CPA errors, FSRS-spaced re-testing, daily mini-sessions, and pattern tracking." />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="./icon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07110F">
+<title>FAR Ledger</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" href="./icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+:root{--bg:#07110F;--bg2:#0A1814;--surface:#0E211C;--surface2:#13302A;--line:#1C3A33;--teal:#2DD4BF;--amber:#F5B544;--coral:#FB7185;--green:#34D399;--text:#E7F2EE;--muted:#7DA399;--muted2:#567067;--r:6px;--r2:12px}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;border-bottom:1px solid var(--line);flex-shrink:0}
+.brand{display:flex;align-items:baseline;gap:8px}.br-i{color:var(--teal);font-size:18px}.br-n{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px}.br-s{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.top-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+screen{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.tabbar{display:flex;border-top:1px solid var(--line);background:rgba(7,17,15,.85);backdrop-filter:blur(12px);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;background:none;border:0;color:var(--muted2);padding:9px 0 11px;flex-direction:column;align-items:center;gap:2px;cursor:pointer;display:flex;font-family:'JetBrains Mono',monospace;font-size:9px;transition:color .15s;position:relative}
+.tab.on{color:var(--teal)}.tab svg{width:20px;height:20px}.dot{position:absolute;top:-2px;right:4px;background:var(--coral);color:var(--bg);font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;font-family:'JetBrains Mono',monospace}
+.tab.on .dot{background:var(--teal)}
+.spin{animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:var(--r2);padding:12px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.12s}.btn.primary{flex:1;background:linear-gradient(180deg,var(--teal),#15A99B);color:#04140f;box-shadow:0 6px 20px rgba(45,212,191,.25)}.btn.primary:disabled{opacity:.4;box-shadow:none}
+.btn.ghost{background:var(--surface);color:var(--muted);border:1px solid var(--line)}.btn.xs{padding:7px 11px;font-size:11px;border-radius:8px}.btn.xs.primary{background:var(--teal);color:#04140f}
+.btn.xs.green{background:var(--green);color:#04140f}.btn.xs.coral{background:var(--coral);color:#150406}
+.field{display:block;margin-bottom:10px}.fl{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+.sel,.inp,.num,.ta{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:var(--r);padding:9px 10px;font-size:13px;font-family:inherit}.sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%237DA399' stroke-width='2'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.num{font-family:'JetBrains Mono',monospace}.ta{resize:vertical;min-height:48px}
+.seg{display:flex;gap:5px}.seg-b{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--muted);border-radius:var(--r);padding:9px 5px;font-size:12px;font-weight:500;cursor:pointer;text-align:center}.seg-b.on{background:var(--surface2);color:var(--text);border-color:var(--teal)}.seg-b.on.green{border-color:var(--green);color:var(--green)}.seg-b.on.coral{border-color:var(--coral);color:var(--coral)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:12px;margin-bottom:12px}
+.ph{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.range{width:100%;accent-color:var(--teal)}
+.muted{color:var(--muted)}.tiny{font-size:10px}.small{font-size:12px}
+.outcome-pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:20px;padding:5px 10px;font-size:11px;margin-bottom:10px}.oc-d{width:7px;height:7px;border-radius:50%;background:var(--oc)}
+.chip{background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:16px;padding:6px 11px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace}.chip.on{background:var(--surface2);color:var(--text);border-color:var(--teal)}
+.chip-n{background:var(--teal);color:#04140f;font-size:9px;font-weight:700;border-radius:6px;padding:0 4px;min-width:14px;text-align:center}
+.filters{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.card-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:11px;margin-bottom:9px}
+.card-m{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-wrap:wrap}
+.ntag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal);background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);border-radius:5px;padding:2px 6px}
+.cf-f{font-size:13px;font-weight:600}.cf-d{height:1px;background:var(--line);margin:8px 0}.cf-b{font-size:12px;color:var(--muted)}.cf-t{margin-top:7px;font-size:11px;color:var(--amber);background:rgba(245,181,68,.07);border-left:2px solid var(--amber);padding:5px 7px;border-radius:0 5px 5px 0}
+.ca{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}.ca-btn{background:var(--bg2);border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:6px 9px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.study-card{flex:1;background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);border-radius:var(--r2);padding:20px 16px;display:flex;flex-direction:column;justify-content:center;min-height:180px;margin-bottom:12px}
+.sc-f{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px;line-height:1.35;text-align:center}.reveal{margin-top:20px;align-self:center;background:var(--surface2);border:1px solid var(--teal);color:var(--teal);border-radius:10px;padding:10px 22px;font-size:13px;cursor:pointer}.sc-b{font-size:14px;line-height:1.5;color:var(--text);text-align:center}
+.grade-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.grade{background:var(--surface);border-radius:var(--r2);padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:12px}.grade b{font-size:12px}.grade small{font-family:'JetBrains Mono',monospace;font-size:9px;opacity:.8}
+.grade.g1{border:1px solid var(--coral);color:var(--coral)}.grade.g2{border:1px solid var(--amber);color:var(--amber)}.grade.g3{border:1px solid var(--teal);color:var(--teal)}.grade.g4{border:1px solid var(--green);color:var(--green)}
+.readiness{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);border-radius:var(--r2);padding:14px 14px 16px;margin-bottom:12px;position:relative;overflow:hidden}
+.readiness::before{content:"";position:absolute;inset:0;background:radial-gradient(300px 120px at 50% -20%,color-mix(in srgb,var(--rc) 18%,transparent),transparent 70%);pointer-events:none}
+.rd-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.rd-l{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px}.rd-s{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:1px}
+.rd-n{display:flex;align-items:baseline;gap:2px;margin:6px 0 10px;position:relative;z-index:1}.rd-b{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:40px;line-height:1;color:var(--rc);text-shadow:0 0 20px color-mix(in srgb,var(--rc) 40%,transparent)}.rd-p{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--rc);opacity:.7}
+.rd-m{position:relative;height:8px;background:#0a1c18;border-radius:5px;border:1px solid var(--line);z-index:1}.rd-f{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,transparent),var(--rc));border-radius:5px;box-shadow:0 0 10px color-mix(in srgb,var(--rc) 50%,transparent);transition:width .5s cubic-bezier(.2,.8,.2,1)}.rd-pl{position:absolute;top:-3px;bottom:-3px;width:1.5px;background:var(--text);opacity:.5}.rd-pl span{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--muted);white-space:nowrap}
+.rd-v{margin-top:12px;font-size:11px;color:var(--muted);line-height:1.4;position:relative;z-index:1}
+.areas{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.ar-top{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}.ar-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);width:18px}.ar-name{font-size:11px;flex:1}.ar-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
+.nb-tr{position:relative;height:6px;background:#0a1c18;border-radius:4px;border:1px solid var(--line)}.nb-f{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .4s}.nb-l{position:absolute;top:-2px;bottom:-2px;width:1.5px;background:var(--text);opacity:.35}
+.qlog{gap:6px;display:flex;flex-direction:column}.qrw{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.qrh{width:100%;background:none;border:0;display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer;font-family:inherit;text-align:left;color:inherit}
+.qo{width:6px;height:6px;border-radius:50%;flex:none}.qi{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:36px}.qn{flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qr{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1px 3px;opacity:.7}
+.qs{font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;padding:2px 5px;border-radius:4px;background:var(--bg2);color:var(--muted)}
+.qrb{padding:0 10px 10px;border-top:1px solid var(--line)}.qst{font-size:11px;color:var(--muted);line-height:1.4;margin:8px 0}.qdt{display:flex;flex-wrap:wrap;gap:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}.qdt b{color:var(--text)}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:6px;height:100%}.empty svg{color:var(--teal);opacity:.5}.empty h3{font-family:'Space Grotesk',sans-serif;font-weight:600;margin:4px 0 0}.empty p{color:var(--muted);font-size:12px;max-width:260px;line-height:1.5}
+.capture{display:flex;flex-direction:column;gap:10px}
+.shoot{background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--teal);border-radius:var(--r2);padding:28px 16px;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.3)}.shoot:active{transform:scale(.99)}.shoot svg{color:var(--teal)}.shoot b{font-family:'Space Grotesk',sans-serif;font-size:15px}.shoot small{color:var(--muted);font-size:11px}
+.shot-pre{width:100%;border-radius:var(--r);border:1px solid var(--line);max-height:180px;object-fit:contain;background:#000}
+.save-bar{display:flex;gap:8px;margin-top:8px;position:sticky;bottom:0}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <span class="brand">
-      <svg class="brand-icon" viewBox="0 0 512 512" width="28" height="28"><path d="M256 112L256 240M200 240L312 240L352 400Q352 432 256 432Q160 432 160 400L200 240" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M196 340Q196 400 256 400Q316 400 316 340" stroke="currentColor" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.4"/><g transform="translate(256,288)"><line x1="-40" y1="-40" x2="40" y2="40" stroke="currentColor" stroke-width="24" stroke-linecap="round"/><line x1="40" y1="-40" x2="-40" y2="40" stroke="currentColor" stroke-width="24" stroke-linecap="round"/></g></svg>
-      <span class="brand-text">ErrorLab</span>
-    </span>
-    <span class="spacer"></span>
-    <span id="keyIndicator" style="display:none;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:var(--s2)" title="API key saved"></span>
-    <button class="iconbtn" id="settingsBtn" title="Settings" aria-label="Settings">⚙</button>
-    <button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
-  </header>
+<div class="app" id="app"></div>
+<script type="module">
+/* ===================== FAR LEDGER — vanilla PWA ===================== */
+import { fsrs, createEmptyCard, Rating, generatorParameters } from './fsrs.js';
 
-  <nav class="nav" aria-label="Sections">
-    <a href="#/log" data-route="log" class="active">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span>Log</span>
-    </a>
-    <a href="#/errors" data-route="errors">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><line x1="16" y1="16" x2="8" y2="16"/><line x1="16" y1="12" x2="8" y2="12"/><line x1="10" y1="8" x2="8" y2="8"/></svg>
-      <span>Errors</span>
-    </a>
-    <a href="#/retest" data-route="retest">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      <span>Re-Test</span>
-    </a>
-    <a href="#/mini" data-route="mini">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span>Mini</span>
-    </a>
-    <a href="#/dashboard" data-route="dashboard">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span>Stats</span>
-    </a>
-  </nav>
+// domain
+const PASS=78, MASTER_DAYS=21, TAU=14, DAY=86400000;
+const EXAM=new Date('2026-08-15').getTime();
+const NODES={ 'Iconceptual':['Conceptual framework','Going concern','Ratios & FS analysis'],'I-FS':['Balance sheet','Income stmt & disc ops','Comprehensive income/OCI','Stmt changes equity','Cash flows','Notes & disclosures','Segment reporting','Interim reporting'],'I-Other':['Not-for-profit','Special-purpose frameworks','SEC reporting'],'I-SLG':['Measurement focus/basis','Fund types','Fund FS','Government-wide stmts','Fund-to-gov-wide reconciliation','Budgetary & encumbrances','Net position/fund balance','MD&A & RSI'],'II-BS':['Cash & equivalents','Trade receivables','Inventory costing','Inventory valuation (LCM/LCNRV)','PP&E capitalization & interest','PP&E depreciation','PP&E impairment & disposal','Investments debt securities','Investments equity & method','Intangibles amortization','Goodwill & impairment','Payables & accrued','Debt bonds & effective-interest','Debt costs/modification/TDR','Equity stock','Equity treasury','Equity dividends/splits/RE'],'III-Tx':['Revenue recog (ASC 606)','Leases lessee (842)','Leases lessor (842)','Income taxes (ASC 740)','Business combinations','Consolidations (NCI/eliminations)','Acct changes & errors','Contingencies & commitments','Fair value (ASC 820)','Foreign currency','Nonmonetary exchanges','Subsequent events','Stock comp (ASC 718)','Pensions/benefits (ASC 715)','Derivatives & hedging (ASC 815)','Software & R&D costs','Not-for-profit transactions']};
+const NODE_AREA=Object.fromEntries(Object.entries(NODES).flatMap(([g,arr])=>{const a=g.split('-')[0];return arr.map(n=>[n,a]);}));
+const AREA_NAME={I:'Financial reporting',II:'Balance sheet accounts',III:'Select transactions'};
+const BLUEPRINT={I:35,II:35,III:30};
+const REASONS=[['conceptual','Conceptual'],['application','Application'],['computational','Computational'],['misread','Misread'],['trap','Trap'],['pacing','Pacing'],['incomplete','Incomplete'],['stale','Stale']];
+const SKILLS=[['ru','Remembering'],['app','Application'],['ana','Analysis']];
+const OUTCOMES={mastered:{l:'Mastered',c:'var(--green)'},fragile:{l:'Fragile',c:'var(--amber)'},gap:{l:'Honest gap',c:'var(--teal)'},misconception:{l:'Misconception',c:'var(--coral)'}};
 
-  <main class="app" id="root" role="main"></main>
+// FSRS
+const f = fsrs(generatorParameters({request_retention:0.9,enable_fuzz:false}));
+function applyGrade(st,grade,now=Date.now()){
+  const c = st.reps>0?f.repeat(st,new Date(st.lastReview||now))[grade].card:createEmptyCard(new Date());
+  if(grade===Rating.Again)c.reps=(c.reps||0)+1,c.lapses=(c.lapses||0)+1;
+  return c;
+}
+function freshNode(){return createEmptyCard(new Date());}
+function fmtDue(due){const d=(due||Date.now())-Date.now();if(d<=0)return'now';if(d<3600000)return Math.round(d/60000)+'m';if(d<DAY)return Math.round(d/3600000)+'h';return Math.round(d/DAY)+'d';}
+function outcome(correct,conf){return correct?(conf>=4?'mastered':'fragile'):(conf>=4?'misconception':'gap');}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 
-  <script type="module" src="./app.js"></script>
-  <script>
-    document.getElementById("themeBtn").addEventListener("click", () => {
-      if (window.__errorlabToggleTheme) window.__errorlabToggleTheme();
-    });
-    document.getElementById("settingsBtn").addEventListener("click", () => {
-      if (window.__errorlabOpenSettings) window.__errorlabOpenSettings();
-      else alert('Loading... try again in a moment');
-    });
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch((e) => console.warn("SW failed", e)));
+// storage
+const KQ='far:q',KC='far:c',KN='far:n';
+function load(){let q=[],c=[],n={};try{const x=JSON.parse(localStorage.getItem(KQ)||'[]');q=x.map(e=>({...e,createdAt:e.createdAt||Date.now(),retests:e.retests||[]}));c=JSON.parse(localStorage.getItem(KC)||'[]');n=JSON.parse(localStorage.getItem(KN)||'{}');}catch(e){}return{q,c,n};}
+function saveQ(q){localStorage.setItem(KQ,JSON.stringify(q));}
+function saveC(c){localStorage.setItem(KC,JSON.stringify(c));}
+function saveN(n){localStorage.setItem(KN,JSON.stringify(n));}
+
+// AI proxy
+async function extractFromImage(b64){
+  const c=await new Promise(r=>{const i=new Image();i.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=1200;const ratio=Math.min(1200/i.width,1200/i.height);cv.width=i.width*ratio;cv.height=i.height*ratio;cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);r(cv.toDataURL('image/jpeg',0.85))};i.src=b64;});
+  const res=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:c})});
+  if(!res.ok)throw new Error('AI failed: '+res.status);
+  return res.json();
+}
+
+// fingerprint
+function fp(o){const n=(o?.mcqNumber||'').replace(/[^a-z0-9]/gi,'').toLowerCase();if(n)return'n:'+n;const s=(o?.stem||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,120);return s?'h:'+s:'';}
+
+// readiness
+function computeReadiness(qs){
+  const now=Date.now(),fresh=qs.filter(q=>q.firstExposure).sort((a,b)=>a.createdAt-b.createdAt);
+  const rolling=fresh.slice(-200),raw=rolling.length?Math.round(100*rolling.filter(q=>q.correct).length/rolling.length):0;
+  const byArea={};fresh.forEach(q=>{const a=NODE_AREA[q.node];if(!a)return;if(!byArea[a])byArea[a]={w:0,c:0,n:0};const wt=Math.exp(-((now-q.createdAt)/DAY)/TAU);byArea[a].w+=wt;byArea[a].c+=wt*(q.correct?1:0);byArea[a].n++;});
+  const present=['I','II','III'].filter(a=>byArea[a]?.n>0);let weighted=0,areaAcc={};const totW=present.reduce((s,a)=>s+BLUEPRINT[a],0)||1;
+  present.forEach(a=>{const acc=byArea[a].w?byArea[a].c/byArea[a].w:0;areaAcc[a]=Math.round(acc*100);weighted+=(BLUEPRINT[a]/totW)*acc;});
+  weighted=present.length?Math.round(weighted*100):0;
+  const coverage=['I','II','III'].filter(a=>!byArea[a]?.n);
+  let bw=0,bs=0,pm={1:.1,2:.3,3:.5,4:.7,5:.9};
+  rolling.forEach(q=>{const w=Math.exp(-((now-q.createdAt)/DAY)/TAU);bw+=w;bs+=w*Math.pow((pm[q.confidence]||.5)-(q.correct?1:0),2);});
+  const brier=bw?(bs/bw).toFixed(3):null;
+  let proj=null;
+  if(fresh.length>=20){
+    const span=fresh.slice(-120),h=Math.floor(span.length/2),e=span.slice(0,h),l=span.slice(h);
+    const aE=e.filter(q=>q.correct).length/e.length,aL=l.filter(q=>q.correct).length/l.length;
+    const tE=e.reduce((s,q)=>s+q.createdAt,0)/e.length,tL=l.reduce((s,q)=>s+q.createdAt,0)/l.length,dDays=(tL-tE)/DAY;
+    if(dDays>=2){const slope=(aL-aE)*100/dDays,daysToExam=Math.max(0,(EXAM-now)/DAY);proj={proj:Math.max(0,Math.min(100,Math.round(weighted+slope*daysToExam))),slopePerWeek:Math.round(slope*7*10)/10,daysToExam:Math.round(daysToExam)};}
+  }
+  return{weighted,raw,n:rolling.length,brier,areaAcc,present,coverage,projection:proj};
+}
+
+// app
+const app=document.getElementById('app');
+let tab='capture',qs=[],cs=[],nodes={};
+({q:qs,c:cs,n:nodes}=load());
+
+function render(){app.innerHTML='';const el=tab==='capture'?Capture():tab==='cards'?Cards():tab==='study'?Study():Stats();app.appendChild(el);}
+
+function Topbar(){const d=document.createElement('div');d.className='topbar';d.innerHTML=`<div class="brand"><span class="br-i">◐</span><span class="br-n">FAR Ledger</span><span class="br-s">peak</span></div><div class="top-meta">Aug 15 · ${qs.length} logged</div>`;return d;}
+function Tabbar(){const d=document.createElement('div');d.className='tabbar';
+  const tabs=[['capture','Capture'],['cards','Cards'],['study','Study'],['stats','Stats']];
+  const icons={capture:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+    cards:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+    study:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>',
+    stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
+  };
+  const pending=cs.filter(c=>c.status==='draft').length;
+  const dueN=new Set(cs.filter(c=>c.status==='scheduled').map(c=>c.node));
+  const dueCount=[...dueN].filter(n=>(nodes[n]?.due??Date.now())<=Date.now()).length;
+  tabs.forEach(([t,label])=>{
+    const btn=document.createElement('button');btn.className='tab'+(tab===t?' on':'');
+    btn.innerHTML=`${icons[t]}<span>${label}</span>`;
+    if(t==='cards'&&pending)btn.innerHTML+=`<span class="dot">${pending}</span>`;
+    if(t==='study'&&dueCount)btn.innerHTML+=`<span class="dot">${dueCount}</span>`;
+    btn.onclick=()=>{tab=t;render();};d.appendChild(btn);
+  });
+  return d;
+}
+
+function Capture(){
+  const d=document.createElement('div');d.className='capture';
+  const ready=computeReadiness(qs);
+  let img=null,fields=null,correct=null,confidence=3,reason='',skill='',node='',secs='',busy=false;
+
+  function reset(){img=null;fields=null;correct=null;confidence=3;reason='';skill='';node='';secs='';renderC();}
+  function renderC(){
+    d.innerHTML='';
+    const rh=document.createElement('div');rh.className='readiness compact';rh.innerHTML=`<div class="rd-h"><span class="rd-l">Readiness</span><span class="rd-s">last ${ready.n||0} fresh</span></div><div class="rd-n"><span class="rd-b">${ready.n?ready.weighted:'—'}</span><span class="rd-p">%</span></div><div class="rd-m"><div class="rd-f" style="width:${ready.weighted||0}%"></div><div class="rd-pl" style="left:${PASS}%"><span>pass ${PASS}</span></div></div>`;
+    d.appendChild(rh);
+
+    if(!img){
+      const sh=document.createElement('button');sh.className='shoot';
+      sh.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg><b>Capture a question</b><small>Screenshot the MCQ + explanation</small>`;
+      const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.capture='environment';fi.hidden=true;
+      sh.onclick=()=>fi.click();
+      fi.onchange=async e=>{
+        const f=e.target.files[0];if(!f)return;
+        const rd=new FileReader();rd.onload=async()=>{
+          img=rd.result;renderC();busy=true;renderC();
+          try{fields=await extractFromImage(img);busy=false;renderC();}catch(er){busy=false;fields={stem:''};renderC();}
+        };rd.readAsDataURL(f);
+      };
+      d.appendChild(sh);d.appendChild(fi);
+      d.appendChild(el('p','hint',{s:'font-size:11px;color:var(--muted2);text-align:center;margin-top:10px'},'Vision reads the stem, choices, your pick, and rationale.'));
+      return;
     }
-  </script>
+
+    if(busy){d.appendChild(el('div','panel',{s:'text-align:center;padding:20px'},'<span class="spin" style="display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:s 1s linear infinite;vertical-align:middle;margin-right:8px"></span>Reading...'));return;}
+
+    const seenSet=new Set(qs.map(q=>q.fp||'').filter(Boolean));
+    const fprint=fields?fp(fields):'';
+    const computedFresh=!(fprint&&seenSet.has(fprint));
+
+    const panel=el('div','panel');
+    if(img)panel.innerHTML+=`<img class="shot-pre" src="${img}" />`;
+    if(fields){
+      panel.innerHTML+=`<div style="margin-top:10px"><div class="field"><span class="fl">Stem</span><textarea class="ta" id="estem" rows="2">${(fields.stem||'').replace(/</g,'&lt;')}</textarea></div>
+        <div class="field"><span class="fl">My answer / Correct</span><div style="display:flex;gap:6px"><input class="inp" id="emy" value="${(fields.myAnswer||'').replace(/"/g,'&quot;')}" placeholder="Your pick" style="flex:1"/><input class="inp" id="ecr" value="${(fields.correctAnswer||'').replace(/"/g,'&quot;')}" placeholder="Correct" style="flex:1"/></div></div></div>`;
+    }
+
+    panel.innerHTML+=`<div class="field"><span class="fl">Got it right?</span><div class="seg"><button class="seg-b${correct===true?' on green':''}" id="br">Right</button><button class="seg-b${correct===false?' on coral':''}" id="bw">Wrong</button></div></div>
+      <div class="field"><span class="fl">Confidence — ${['','guess','low','medium','high','certain'][confidence]}</span><input class="range" type="range" min="1" max="5" value="${confidence}" id="rconf"/></div>`;
+    if(correct!==null){
+      const oc=outcome(correct,confidence),om=OUTCOMES[oc];
+      panel.innerHTML+=`<div class="outcome-pill" style="--oc:${om.c}"><span class="oc-d"></span>${om.l}</div>`;
+    }
+    if(correct===false||(correct===true&&confidence<4)){
+      panel.innerHTML+=`<div class="field"><span class="fl">Why?</span><select class="sel" id="sreason"><option value="">— reason —</option>${REASONS.map(([v,l])=>`<option value="${v}" ${reason===v?'selected':''}>${l}</option>`).join('')}</select></div>`;
+    }
+    panel.innerHTML+=`<div class="field"><span class="fl">Content node *</span><select class="sel" id="snode"><option value="">— pick —</option>${Object.entries(NODES).map(([g,arr])=>`<optgroup label="${g.replace('I','Area I — ').replace('II','Area II — ').replace('III','Area III — ')}">${arr.map(n=>`<option value="${n}" ${node===n?'selected':''}>${n}</option>`).join('')}</optgroup>`).join('')}</select></div>
+      <div class="field"><span class="fl">Skill</span><div class="seg">${SKILLS.map(([v,l])=>`<button class="seg-b${skill===v?' on':''}" data-s="${v}">${l.split(' ')[0]}</button>`).join('')}</div></div>
+      <div class="field"><span class="fl">Time (sec)</span><input class="num" type="number" value="${secs}" id="isecs" placeholder="opt"/></div>
+      <div class="field"><span class="fl">Exposure</span><span style="color:${computedFresh?'var(--teal)':'var(--amber)'};font-size:12px">${computedFresh?'Fresh':'Seen before'}</span></div>`;
+    d.appendChild(panel);
+
+    const bar=el('div','save-bar');bar.innerHTML=`<button class="btn ghost" id="bdiscard">Discard</button><button class="btn primary" id="bsave" ${!node?'disabled':''}>${correct===false||(correct===true&&confidence<4)?'Log + make card':'Log question'}</button>`;
+    d.appendChild(bar);
+
+    // wire
+    d.querySelector('#br')?.addEventListener('click',()=>{correct=true;renderC();});
+    d.querySelector('#bw')?.addEventListener('click',()=>{correct=false;renderC();});
+    d.querySelector('#rconf')?.addEventListener('input',e=>{confidence=+e.target.value;renderC();});
+    d.querySelector('#sreason')?.addEventListener('change',e=>{reason=e.target.value;renderC();});
+    d.querySelector('#snode')?.addEventListener('change',e=>{node=e.target.value;renderC();});
+    d.querySelector('#isecs')?.addEventListener('input',e=>{secs=e.target.value;renderC();});
+    d.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{skill=b.dataset.s;renderC();}));
+    d.querySelector('#bdiscard')?.addEventListener('click',reset);
+    d.querySelector('#bsave')?.addEventListener('click',async()=>{
+      if(!node)return;
+      const stm=d.querySelector('#estem')?.value||fields?.stem||'';
+      const myA=d.querySelector('#emy')?.value||fields?.myAnswer||'';
+      const crA=d.querySelector('#ecr')?.value||fields?.correctAnswer||'';
+      const oc=outcome(correct,confidence);
+      const qid=uid();
+      const q={id:qid,fp:fprint,stem:stm,myAnswer:myA,correctAnswer:crA,correct,confidence,reason,skill,node,timeSeconds:secs?Number(secs):null,firstExposure:computedFresh,outcome:oc,retests:[],createdAt:Date.now()};
+      qs=[q,...qs];saveQ(qs);
+      const isWeak=correct===false||(correct===true&&confidence<4);
+      if(isWeak){
+        const cid=uid();
+        cs=[{id:cid,questionId:qid,node,reason,outcome:oc,front:`${node}: ${stm.slice(0,80)}...`,back:`Correct: ${crA}. ${q.explanation||''}`.slice(0,200),trap:'',status:'draft',createdAt:Date.now()},...cs];
+        saveC(cs);
+      }
+      reset();
+    });
+  }
+  renderC();return d;
+}
+
+function Cards(){
+  const d=document.createElement('div');d.className='capture';
+  const [filter,setFilter]=React_state('draft');
+  const pending=cs.filter(c=>c.status==='draft'),scheduled=cs.filter(c=>c.status==='scheduled'),all=cs;
+  const list=filter==='draft'?pending:filter==='scheduled'?scheduled:all;
+  
+  function renderCards(){
+    d.innerHTML='';
+    const fdiv=el('div','filters');
+    [['draft','Drafts',pending.length],['scheduled','In deck',scheduled.length],['all','All']].forEach(([v,l,n])=>{
+      const chip=el('button','chip'+(filter===v?' on':''));chip.textContent=l;if(n>0)chip.innerHTML+=` <span class="chip-n">${n}</span>`;
+      chip.onclick=()=>{setFilter(v);renderCards();};fdiv.appendChild(chip);
+    });
+    d.appendChild(fdiv);
+
+    if(!list.length){d.appendChild(el('div','empty','<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><h3>'+(filter==='draft'?'No drafts':'Nothing here')+'</h3><p>'+(filter==='draft'?'Capture a miss to generate a card.':'Send a draft to the deck to schedule its node.')+'</p>'));return;}
+
+    list.forEach(c=>{
+      const q=qs.find(x=>x.id===c.questionId);
+      const item=el('div','card-item');
+      item.innerHTML=`<div class="card-m"><span class="ntag">${c.node}</span><span style="font-size:10px;color:${OUTCOMES[c.outcome]?.c||'var(--muted)'}">${OUTCOMES[c.outcome]?.l||''}</span>${c.status==='scheduled'?'<span style="margin-left:auto;font-size:10px;color:var(--muted)">in deck</span>':''}</div>`;
+      if(c.front)item.innerHTML+=`<div class="cf-f">${c.front||'— empty —'}</div>`;
+      if(c.back){item.innerHTML+=`<div class="cf-d"></div><div class="cf-b">${c.back}</div>`;}
+      if(c.trap)item.innerHTML+=`<div class="cf-t">${c.trap}</div>`;
+      item.innerHTML+=`<div class="ca">
+        <button class="ca-btn" data-edit="${c.id}">✏️ Edit</button>
+        <button class="ca-btn" data-regen="${c.id}">🔄 Redo</button>
+        ${c.status==='draft'?`<button class="ca-btn" data-sched="${c.id}" style="color:var(--teal);border-color:var(--teal);margin-left:auto">✨ To deck</button>`:''}
+        <button class="ca-btn" data-del="${c.id}" style="color:var(--coral)">🗑</button></div>`;
+
+      // wire card actions
+      setTimeout(()=>{
+        item.querySelector('[data-edit]')?.addEventListener('click',()=>{
+          const nf=prompt('Front:',c.front);if(nf!==null)c.front=nf;
+          const nb=prompt('Back:',c.back);if(nb!==null)c.back=nb;
+          saveC(cs);renderCards();
+        });
+        item.querySelector('[data-regen]')?.addEventListener('click',async()=>{
+          const stem=q?.stem||'';const myA=q?.myAnswer||'';const crA=q?.correctAnswer||'';
+          item.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted)"><span class="spin" style="display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:s 1s linear infinite"></span> regenerating...</div>';
+          try{
+            const res=await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:'',extra:true,stem,myAnswer:myA,correctAnswer:crA,node:c.node,reason:c.reason})});
+            if(res.ok){const g=await res.json();c.front=g.front||c.front;c.back=g.back||c.back;c.trap=g.trap||c.trap;saveC(cs);}
+          }catch(e){}
+          renderCards();
+        });
+        item.querySelector('[data-sched]')?.addEventListener('click',()=>{
+          c.status='scheduled';c.lastShown=null;saveC(cs);
+          if(!nodes[c.node]){nodes[c.node]=freshNode();saveN(nodes);}
+          renderCards();
+        });
+        item.querySelector('[data-del]')?.addEventListener('click',()=>{cs=cs.filter(x=>x.id!==c.id);saveC(cs);renderCards();});
+      },0);
+      d.appendChild(item);
+    });
+  }
+  renderCards();return d;
+}
+
+function Study(){
+  const d=document.createElement('div');d.className='capture';
+  const scheduled=cs.filter(c=>c.status==='scheduled');
+  const nodeNames=[...new Set(scheduled.map(c=>c.node))];
+  const dueNodes=nodeNames.map(n=>({n,st:nodes[n]||freshNode()})).filter(x=>(x.st.due||0)<=Date.now()).sort((a,b)=>(a.st.due||0)-(b.st.due||0));
+
+  if(!dueNodes.length){d.innerHTML='<div class="empty"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><h3>Deck clear</h3><p>No nodes due. Send a draft to the deck to start the loop.</p></div>';return d;}
+
+  const currentNode=dueNodes[0].n,nodeState=nodes[currentNode]||freshNode();
+  const pool=scheduled.filter(c=>c.node===currentNode).sort((a,b)=>(a.lastShown||0)-(b.lastShown||0));
+  const card=pool[0];
+  let show=false;
+  function renderStudy(){
+    d.innerHTML='';
+    d.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px"><span class="ntag">${currentNode}</span><span class="muted tiny">${dueNodes.length} nodes due · ${pool.length} cards</span></div>`;
+    const sc=el('div','study-card');
+    sc.innerHTML=`<div class="sc-f">${card.front}</div>${!show?`<button class="reveal" id="rev">Show answer</button>`:`<div class="cf-d" style="margin:14px 0"></div><div class="sc-b">${card.back}</div>${card.trap?`<div class="cf-t" style="margin-top:10px">${card.trap}</div>`:''}`}`;
+    d.appendChild(sc);
+    if(show){
+      const gb=el('div','grade-bar');
+      [{g:1,l:'Again',c:'g1'},{g:2,l:'Hard',c:'g2'},{g:3,l:'Good',c:'g3'},{g:4,l:'Easy',c:'g4'}].forEach(({g,l,c})=>{
+        const btn=el('button','grade '+c);const ns=applyGrade(nodeState,g);
+        btn.innerHTML=`<b>${l}</b><small>${fmtDue(ns.due)}</small>`;
+        btn.onclick=()=>{
+          nodes[currentNode]=ns;saveN(nodes);
+          cs=cs.map(x=>x.id===card.id?{...x,lastShown:Date.now()}:x);saveC(cs);
+          if(ns.intervalDays>=MASTER_DAYS)qs=qs.map(q=>q.node===currentNode&&q.status!=='mastered'?{...q,status:'mastered'}:q);
+          tab='study';render();
+        };
+        gb.appendChild(btn);
+      });
+      d.appendChild(gb);
+    }
+    d.querySelector('#rev')?.addEventListener('click',()=>{show=true;renderStudy();});
+  }
+  renderStudy();return d;
+}
+
+function Stats(){
+  const d=document.createElement('div');d.style.display='flex';d.style.flexDirection='column';d.style.gap='14px';
+  const r=computeReadiness(qs);
+  const fresh=qs.filter(q=>q.firstExposure);
+
+  // readiness
+  const rc=el('div','readiness');const a=r.n?r.weighted:null;
+  rc.style.setProperty('--rc',a==null?'var(--muted)':a>=PASS?'var(--green)':a>=PASS-8?'var(--amber)':'var(--coral)');
+  rc.innerHTML=`<div class="rd-h"><span class="rd-l">Readiness</span><span class="rd-s">exam-weighted · last ${r.n||0} fresh</span></div><div class="rd-n"><span class="rd-b">${a==null?'—':a}</span><span class="rd-p">%</span></div><div class="rd-m"><div class="rd-f" style="width:${a||0}%"></div><div class="rd-pl" style="left:${PASS}%"><span>pass ${PASS}</span></div></div><div class="rd-v">${a==null?'Log fresh questions to build the readiness line.':a>=PASS?'Above the line, blueprint-weighted. On track.':`${PASS-a} pts under — drill the weakest nodes below.`}</div>`;
+  d.appendChild(rc);
+
+  // projection
+  if(r.projection){
+    const p=r.projection,ok=p.proj>=PASS,col=ok?'var(--green)':'var(--coral)';
+    const pr=el('div','panel');pr.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600;font-size:12px">Projected Aug 15</div><div style="font-size:10px;color:var(--muted)">${p.slopePerWeek>=0?'+':''}${p.slopePerWeek} pts/wk · ${p.daysToExam}d</div></div><div style="text-align:right"><div style="font-family:monospace;font-weight:700;font-size:24px;color:${col}">${p.proj}<small style="font-size:12px;opacity:.7">%</small></div><div style="font-size:9px;color:${col}">${ok?'on track':`${PASS-p.proj} short`}</div></div></div>`;
+    d.appendChild(pr);
+  }
+
+  // areas
+  const ab=el('div','panel');ab.innerHTML=`<div class="ph">By exam area <span class="muted tiny">blueprint ${BLUEPRINT.I}/${BLUEPRINT.II}/${BLUEPRINT.III}</span></div>`;
+  ['I','II','III'].forEach(a=>{
+    const has=r.present.includes(a),acc=r.areaAcc[a]??0;
+    ab.innerHTML+=`<div style="margin-bottom:10px"><div class="ar-top"><span class="ar-id">${a}</span><span class="ar-name">${AREA_NAME[a]}</span><span class="ar-val" style="color:${!has?'var(--muted2)':acc>=PASS?'var(--green)':'var(--amber)'}">${has?acc+'%':'no data'}</span></div><div class="nb-tr"><div class="nb-f" style="width:${has?acc:0}%;background:${acc>=PASS?'var(--green)':'var(--amber)'}"></div><div class="nb-l" style="left:${PASS}%"></div></div></div>`;
+    if(r.coverage.includes(a))ab.innerHTML+=`<div class="muted tiny" style="margin-bottom:6px">No fresh data in Area ${a}</div>`;
+  });
+  d.appendChild(ab);
+
+  // funnel
+  const funnel={logged:qs.length,weak:0,remediating:0,mastered:0,retested:0};
+  qs.forEach(q=>{if(['fragile','gap','misconception'].includes(q.outcome))funnel.weak++;if(q.status==='remediating')funnel.remediating++;if(q.status==='mastered')funnel.mastered++;if(q.status==='retested')funnel.retested++;});
+  const fn=el('div','panel');fn.innerHTML=`<div class="ph">Remediation funnel</div><div style="display:flex;justify-content:space-between;text-align:center">${[{l:'Logged',n:funnel.logged},{l:'Weak',n:funnel.weak,c:'var(--amber)'},{l:'FSRS',n:funnel.remediating,c:'var(--teal)'},{l:'Mastered',n:funnel.mastered,c:'var(--green)'},{l:'Retested',n:funnel.retested,c:'var(--green)'}].map((s,i)=>`<div><div style="font-family:monospace;font-weight:700;font-size:20px;color:${s.c||'var(--muted)'}">${s.n}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase">${s.l}</div></div>`).join('')}</div>`;
+  d.appendChild(fn);
+
+  // weakest nodes
+  const nodeMap={};fresh.forEach(q=>{if(!nodeMap[q.node])nodeMap[q.node]=[];nodeMap[q.node].push(q);});
+  const nodeStats=Object.entries(nodeMap).map(([n,arr])=>({node:n,n:arr.length,acc:Math.round(100*arr.filter(x=>x.correct).length/arr.length)})).filter(x=>x.n>=3).sort((a,b)=>a.acc-b.acc);
+  if(nodeStats.length){
+    const ns=el('div','panel');ns.innerHTML=`<div class="ph">Weakest nodes <span class="muted tiny">fresh accuracy · ≥3</span></div>`;
+    nodeStats.slice(0,10).forEach(s=>{ns.innerHTML+=`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>${s.node}</span><span style="font-family:monospace;color:${s.acc>=PASS?'var(--green)':'var(--amber)'}">${s.acc}%</span></div><div class="nb-tr"><div class="nb-f" style="width:${s.acc}%;background:${s.acc>=PASS?'var(--green)':'var(--amber)'}"></div><div class="nb-l" style="left:${PASS}%"></div></div><div class="tiny muted" style="margin-top:2px">${s.n} fresh</div></div>`;});
+    d.appendChild(ns);
+  }
+
+  // question log
+  if(qs.length){
+    const ql=el('div','panel');ql.innerHTML=`<div class="ph">Question log</div>`;
+    let open=null;
+    function renderLog(){
+      ql.innerHTML='<div class="ph">Question log</div>';
+      qs.slice(0,40).forEach(q=>{
+        const row=el('div','qrw');
+        row.innerHTML=`<button class="qrh"><span class="qo" style="background:${OUTCOMES[q.outcome]?.c||'var(--muted)'}"></span><span class="qi">${q.mcqNumber||'—'}</span><span class="qn">${q.node||''}</span>${!q.firstExposure?'<span class="qr">rpt</span>':''}<span class="qs">${q.outcome||'?'}</span></button>`;
+        if(open===q.id){
+          row.innerHTML+=`<div class="qrb">${q.stem?`<div class="qst">${q.stem.replace(/</g,'&lt;')}</div>`:''}<div class="qdt"><span>picked <b>${q.myAnswer||'?'}</b></span><span>correct <b>${q.correctAnswer||'?'}</b></span><span>conf ${q.confidence}/5</span>${q.reason?`<span>${q.reason}</span>`:''}${q.timeSeconds!=null?`<span>${q.timeSeconds}s</span>`:''}</div></div>`;
+        }
+        row.querySelector('.qrh').onclick=()=>{open=open===q.id?null:q.id;renderLog();};
+        ql.appendChild(row);
+      });
+    }
+    renderLog();d.appendChild(ql);
+  }
+  return d;
+}
+
+function el(tag,cls,html,opts={}){
+  const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;
+  if(opts.s)Object.assign(e.style,Object.fromEntries(opts.s.split(';').filter(Boolean).map(p=>p.split(':').map(s=>s.trim()))));
+  return e;
+}
+
+// simple state hook for Cards filter  
+function React_state(initial){let v=initial;return[v,x=>{v=x;renderCards();}];}
+function renderCards(){render();}
+
+render();
+app.prepend(Topbar());
+app.appendChild(Tabbar());
+</script>
 </body>
 </html>

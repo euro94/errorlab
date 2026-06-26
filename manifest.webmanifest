@@ -1,13 +1,11 @@
 {
-  "name": "ErrorLab — CPA Error Tracker & Re-Test Scheduler",
-  "short_name": "ErrorLab",
-  "description": "Mass-log Becker errors, categorize misses, FSRS-spaced re-testing, daily mini-sessions, and pattern tracking for the CPA exam.",
+  "name": "FAR Ledger — CPA Study Companion",
+  "short_name": "FAR Ledger",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fafaf8",
-  "theme_color": "#c77d20",
-  "orientation": "portrait-primary",
+  "background_color": "#07110F",
+  "theme_color": "#07110F",
   "icons": [
     { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

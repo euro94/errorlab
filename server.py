@@ -36,25 +36,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 body = self.rfile.read(length)
                 data = json.loads(body)
                 image = data.get('image', '')
+                extra = data.get('extra', False)
+
+                if extra:
+                    # Card generation mode
+                    prompt = f"Write one spaced-repetition flashcard correcting this FAR mistake. Return ONLY JSON: {{\"front\":string,\"back\":string,\"trap\":string}}\nNode: {data.get('node','')}\nStem: {data.get('stem','')}\nI picked: {data.get('myAnswer','')}\nCorrect: {data.get('correctAnswer','')}"
+                    msgs = [{'role':'user','content':prompt}]
+                else:
+                    # Vision extraction mode
+                    msgs = [{'role':'system','content':SYSTEM_PROMPT},{'role':'user','content':[{'type':'image_url','image_url':{'url':image,'detail':'high'}},{'type':'text','text':'Extract from this Becker FAR question photo.'}]}]
 
                 req = urllib.request.Request('https://api.openai.com/v1/chat/completions',
-                    data=json.dumps({
-                        'model': 'gpt-4o-mini',
-                        'messages': [
-                            {'role': 'system', 'content': SYSTEM_PROMPT},
-                            {'role': 'user', 'content': [
-                                {'type': 'image_url', 'image_url': {'url': image, 'detail': 'high'}},
-                                {'type': 'text', 'text': 'Extract from this Becker FAR question photo.'}
-                            ]}
-                        ],
-                        'max_tokens': 1000,
-                        'temperature': 0
-                    }).encode(),
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': f'Bearer {key}'
-                    }
-                )
+                    data=json.dumps({'model':'gpt-4o-mini','messages':msgs,'max_tokens':1000,'temperature':0}).encode(),
+                    headers={'Content-Type':'application/json','Authorization':f'Bearer {key}'})
                 resp = urllib.request.urlopen(req, timeout=30)
                 result = json.loads(resp.read())
                 content = result['choices'][0]['message']['content']
